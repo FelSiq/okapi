@@ -2,12 +2,13 @@ CC = javac
 RUNPROG = java
 DEFPATH = ./src
 EXECNAME = MainInterface
-PLOTPATH = $(DEFPATH)/plots
-GENLPATH = $(DEFPATH)/general
-EXTRPATH = $(DEFPATH)/extras
+DEFTPACK = OkapiPack
+PLOTPATH = $(DEFPATH)/plots$(DEFTPACK)
+GENLPATH = $(DEFPATH)/general$(DEFTPACK)
+EXTRPATH = $(DEFPATH)/extras$(DEFTPACK)
 
 all: plots extras general
-	$(CC) $(DEFPATH)/*.java
+	$(CC) -cp $(DEFPATH)/*.java
 plots:
 	$(CC) $(PLOTPATH)/*.java
 extras:
