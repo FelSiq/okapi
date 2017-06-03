@@ -13,22 +13,27 @@ import java.util.regex.Matcher;
 public class Arithmetic extends GeneralOkapi {
 	//---------------------------------------------
 	// CONSTANT SECTION
+	private static final String powerMarkerSymbol = "z";
+
+	// String used to place a symbol marker before a (a)^b operation, in order to fix a signal bug
+	private static final String srPreprocessPowerString = "(\\(([^()]+)\\)\\s*\\^)";
 
 	// Get a subexpression inside a parenthesis, in order to solve it with high priority
 	private static final String srGetParenthesisString = "\\(([^()]+)\\)";
 
 	// Solve exponential subexpression
-	private static final String sroPrimaryString = "((?:\\(\\s*[+-]?\\s*[\\d.]+\\s*\\))|(?:[\\d.]+))\\s*(\\^)\\s*([+-]?\\s*[\\d.]+)";
+	private static final String sroPrimaryString = "((?:" + powerMarkerSymbol + "\\s*[+-]?)?\\s*[\\d.]+)\\s*(\\^)\\s*([+-]?\\s*[\\d.]+)";
 
 	// Get multiplication and division subexpressions
-	private static final String sroSecondaryString = "((?:[+-]\\s*)?\\s*[\\d.]+)\\s*([/*])\\s*((?:[+-]\\s*)?\\s*[\\d.]+)";
+	private static final String sroSecondaryString = "([+-]?\\s*[\\d.]+)\\s*([/*])\\s*([+-]?\\s*[\\d.]+)";
 
 	// Get add and minus subexpressions
-	private static final String sroTertiaryString = "((?:[-+]\\s*)?\\s*[\\d.]+)\\s*([+-])\\s*((?:[+-]\\s*)?\\s*[\\d.]+)";
+	private static final String sroTertiaryString = "([-+]?\\s*[\\d.]+)\\s*([+-])\\s*([+-]?\\s*[\\d.]+)";
 	//---------------------------------------------
 	// AUXILIARY VARIABLES SECTION
 	// Keep precompiled regex patterns active
 	private static Pattern srGetParenthesisPattern;
+	private static Pattern srPreprocessPowerPattern;
 	private static Pattern sroPrimaryPattern;
 	private static Pattern sroSecondaryPattern;
 	private static Pattern sroTertiaryPattern;
@@ -40,6 +45,7 @@ public class Arithmetic extends GeneralOkapi {
 	public Arithmetic() {
 		try {
 			Arithmetic.srGetParenthesisPattern = Pattern.compile(Arithmetic.srGetParenthesisString);
+			Arithmetic.srPreprocessPowerPattern = Pattern.compile(Arithmetic.srPreprocessPowerString);
 			Arithmetic.sroPrimaryPattern = Pattern.compile(Arithmetic.sroPrimaryString);
 			Arithmetic.sroSecondaryPattern = Pattern.compile(Arithmetic.sroSecondaryString);
 			Arithmetic.sroTertiaryPattern = Pattern.compile(Arithmetic.sroTertiaryString);
@@ -57,6 +63,11 @@ public class Arithmetic extends GeneralOkapi {
 		// Add a initial and final parenthesis on the user arithmetic expression,
 		// to remove any special cases (all expression without any parenthesis).
 		arithmeticExpression = "(" + arithmeticExpression + ")";
+
+		//Preprocess power operation, in order to fix a signal bug
+		Matcher auxMatcher = Arithmetic.srPreprocessPowerPattern.matcher(arithmeticExpression);
+		if (auxMatcher.find())
+			arithmeticExpression = arithmeticExpression.replaceAll(srPreprocessPowerString, powerMarkerSymbol + auxMatcher.group(1));
 
 		// Matches all inner parenthesis (1)
 		Matcher matchedSubexpressions = Arithmetic.srGetParenthesisPattern.matcher(arithmeticExpression);
@@ -79,12 +90,12 @@ public class Arithmetic extends GeneralOkapi {
 					}
 
 					while (matcherOperations.find()) {
-
 						// Get subexpression operator
 						operator = matcherOperations.group(2);
 
 						// Get subexpression A operand
-						operandA = Double.parseDouble(matcherOperations.group(1));
+						operandA = Double.parseDouble(matcherOperations.group(1).replaceAll(powerMarkerSymbol, ""));
+						//operandA = Double.parseDouble(matcherOperations.group(1));
 
 						// Get subexpression B operand
 						operandB = Double.parseDouble(matcherOperations.group(3));
@@ -92,9 +103,7 @@ public class Arithmetic extends GeneralOkapi {
 						switch (k) {
 							// Solve max priority operation (^)
 							case 0: 
-								partialResult = Math.pow(
-									Double.parseDouble(matcherOperations.group(1)), 
-									Double.parseDouble(matcherOperations.group(3)));
+								partialResult = Math.pow(operandA, operandB);
 								auxString = auxString.replaceFirst(Arithmetic.sroPrimaryString, partialResult.toString());
 								matcherOperations = Arithmetic.sroPrimaryPattern.matcher(auxString);
 								break;
