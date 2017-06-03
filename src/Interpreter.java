@@ -9,15 +9,12 @@ import plotsOkapiPack.*;
 
 //1. For regex (interpreting the user input)
 import java.util.regex.PatternSyntaxException;
-//import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 //2. For reflection (calling the right input method)
 import java.lang.reflect.InvocationTargetException;
-//import java.lang.reflect.Modifier;
 import java.lang.reflect.Method;
-//import java.lang.reflect.Field;
 //---------------------------------------------
 
 /**
@@ -44,7 +41,7 @@ public class Interpreter {
 	private static final String defaultRegexString = "\\b(\\w+)(?:(?:\\s+(\\w+)\\s*=\\s*(\\w+))?)*\\s*\\b";
 
 	// If this regex matches, then the given command is not a arithmetic expression
-	private static final String negatedArithmeticRegexString = "[^-+*/^()0-9\\s]+";
+	private static final String negatedArithmeticRegexString = "[^-+*/^()0-9\\s.]+";
 
 	// Checks if there is at least on redefinition of a string parameter from a user input
 	private static final String checkInputRedundancyString = "\\b(\\w+)\\s*=.+(?:\\1)(?=\\s*=)\\b";
@@ -53,6 +50,10 @@ public class Interpreter {
 	private Pattern mainRegexPattern = null; 
 	private Pattern negatedArithmeticRegexPattern = null; 
 	private Pattern checkInputRedundancyPattern = null; 
+
+	// Instantiation of arithmetic expression solver
+	private static final Arithmetic arithmeticSolver = new Arithmetic();
+
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
 	public Interpreter() {
@@ -179,7 +180,7 @@ public class Interpreter {
 				}
 			} else {
 				//It is a arithmetic expression, call a method to solve it and then display the result.
-				System.out.println(Arithmetic.solve(userInput));
+				System.out.println(this.arithmeticSolver.solve(userInput));
 			}
 		} catch (IllegalStateException ise) {
 			System.out.println("E: main input Scanner was closed.");
@@ -201,10 +202,11 @@ public class Interpreter {
 	* For test purpose. Should not exists on final version.
 	*/
 	public static void main(String[] args) {
-		for (int i = 0; i < Interpreter.interpreterMethods.length; i++)
-			System.out.println(Interpreter.interpreterMethods[i].getName().toString());
+		//for (int i = 0; i < Interpreter.interpreterMethods.length; i++)
+		//	System.out.println(Interpreter.interpreterMethods[i].getName().toString());
 
 		Interpreter myInt = new Interpreter ();
-		myInt.getInput();
+		while(!myInt.programEnds()) 
+			myInt.getInput();
 	}
 }
