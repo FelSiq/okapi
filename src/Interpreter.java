@@ -192,6 +192,8 @@ public class Interpreter {
 			System.out.println("E: missing or excessive parameters for this function!");
 		} catch (NullPointerException npe) {
 			this.callInvalidMethod();
+		} catch (IllegalArithmeticExpression iae) {
+			System.out.println(iae.getMessage());
 		}
 
 		//Return false, by default, if no regex match happens.
