@@ -1,20 +1,26 @@
 //---------------------------------------------
 //IMPORT SECTION 
-//0. Basic stuff (general stuff)
+// 0. Basic stuff (general stuff)
+import generalOkapiPack.*;
+import plotsOkapiPack.*;
 import java.util.Comparator;
 import java.util.Scanner;
 import java.util.Arrays;
-import generalOkapiPack.*;
-import plotsOkapiPack.*;
 
-//1. For regex (interpreting the user input)
+// 1. For regex (interpreting the user input)
 import java.util.regex.PatternSyntaxException;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-//2. For reflection (calling the right input method)
+// 2. For reflection (calling the right input method)
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+
+// 3. For swing thread
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+
 //---------------------------------------------
 
 /**
@@ -24,21 +30,44 @@ import java.lang.reflect.Method;
 
 public class Interpreter {
 	//---------------------------------------------
+	// IINER CLASS SECTION
+	// Inner class, which hold up all Interpreter parameters
+	private static class InterpreterParameters {
+		// Interpreter parameters
+		protected String type;
+		protected String color;
+
+		/**
+		* Clear all fields (set to null) of this class
+		*/
+		public void clearParameters() {
+			try {
+				for (Field k : InterpreterParameters.class.getDeclaredFields())
+					k.set(this, null);
+			} catch (IllegalAccessException iae) {
+				System.out.println(iae.getMessage());
+			}
+		}
+	}
+	//---------------------------------------------
 	// VARIABLE SECTION
 	// Tell if exit command is or is not been called.
 	private static boolean endOfProgram = false;
 
 	// Standard user input getter
-	private static final Scanner inputScanner = new Scanner (System.in);
+	private static final Scanner inputScanner = new Scanner(System.in);
 
 	// Hold all this class declared method names, to match the user input
-	private static final Method [] interpreterMethods = Interpreter.class.getDeclaredMethods();
+	private static final Method[] interpreterMethods = Interpreter.class.getDeclaredMethods();
 	
 	// Tell how many commands are available, on this program version, to recognition
 	private static final int commandQuantity = (Interpreter.interpreterMethods.length - 1);
 	
 	// This is the default regex to match user input
-	private static final String defaultRegexString = "\\b(\\w+)(?:(?:\\s+(\\w+)\\s*=\\s*(\\w+))?)*\\s*\\b";
+	private static final String defaultRegexString = "\\b(\\w+)(?:\\s+(\\w+)\\s*=\\s*(\\w+))*\\s*\\b";
+
+	// Regex used to parameter parsing
+	private static final String parameterParsingString = "\\b(\\w+)\\s*=\\s*(\\w+)\\b";
 
 	// If this regex matches, then the given command is not a arithmetic expression
 	private static final String negatedArithmeticRegexString = "[^-+*/^()0-9\\s.]+";
@@ -46,30 +75,41 @@ public class Interpreter {
 	// Checks if there is at least on redefinition of a string parameter from a user input
 	private static final String checkInputRedundancyString = "\\b(\\w+)\\s*=.+(?:\\1)(?=\\s*=)\\b";
 
-	// These variables holds the regex compiled pattern, used to process user input
-	private Pattern mainRegexPattern = null; 
-	private Pattern negatedArithmeticRegexPattern = null; 
-	private Pattern checkInputRedundancyPattern = null; 
-
 	// Instantiation of arithmetic expression solver
 	private static final Arithmetic arithmeticSolver = new Arithmetic();
+
+	// Inner class, which keeps all the function parameters inside it
+	private static final Interpreter.InterpreterParameters parametersKeeper = new Interpreter.InterpreterParameters();
+
+	// Get field labels of the InterpreterParameters class.
+	private static final Field[] parametersFieldNames = InterpreterParameters.class.getDeclaredFields();
+
+	// These variables holds the regex compiled pattern, used to process user input
+	private Pattern negatedArithmeticRegexPattern; 
+	private Pattern checkInputRedundancyPattern; 
+	private Pattern parameterParsingPattern; 
+	private Pattern mainRegexPattern; 
 
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
 	public Interpreter() {
 		try {
-			//If this regex have a match, then the input string has at least two equal words  
+			// Regex used to parse user input parameters
+			this.parameterParsingPattern = Pattern.compile(Interpreter.parameterParsingString);
+
+			// If this regex have a match, then the input string has at least two equal words  
 			this.checkInputRedundancyPattern = Pattern.compile(Interpreter.checkInputRedundancyString);
-			//Compile negated arithmetic expression. If this pattern has at least match, then the
-			//current user input can not be a arithmetic expression.
+
+			// Compile negated arithmetic expression. If this pattern has at least match, then the
+			// current user input can not be a arithmetic expression.
 			this.negatedArithmeticRegexPattern = Pattern.compile(Interpreter.negatedArithmeticRegexString);
 
-			//Compile general regex, used to match both main command and its parameters 
+			// Compile general regex, used to match both main command and its parameters 
 			this.mainRegexPattern = Pattern.compile(Interpreter.defaultRegexString);
 			
-			//Sort the method list of Interpreter Class, by name, in order to use binary searchs
+			// Sort the method list of Interpreter Class, by name, in order to use binary searchs
 			Arrays.sort(interpreterMethods, 
-				new Comparator <Method>() {
+				new Comparator<Method>() {
 					public int compare(Method a, Method b) {
 						return a.getName().compareTo(b.getName());
 					}
@@ -99,7 +139,7 @@ public class Interpreter {
 	*/
 	private Boolean callInvalidMethod() {
 		System.out.println("E: this command is invalid!");
-		return null;
+		return false;
 	} 
 
 	/**
@@ -114,18 +154,136 @@ public class Interpreter {
 	}
 
 	/**
+	* Process all regexes parameters.
+	* @Throws No exceptions.
+	*/
+	private void processParameters(String userInput) {
+		// Set up user parameter matching
+		Matcher userCommandArgs = this.parameterParsingPattern.matcher(userInput);
+
+		// Used to give user a warning
+		Boolean invalidationFlag;
+
+		// Clear all set on the previous command 
+		Interpreter.parametersKeeper.clearParameters();
+		
+		// Set all given arguments, if possible
+		try {
+			while (userCommandArgs.find()) {
+				// Set validation flag to true
+				invalidationFlag = true;
+
+				// Search the correspondent field of the given parameter
+				for (Field f : Interpreter.parametersFieldNames) {
+					if (f.getName().equals(userCommandArgs.group(1))) {
+						// Set correspondent field to the given value
+						f.set(Interpreter.parametersKeeper, userCommandArgs.group(2));
+
+						// Set invalidation flag to false 
+						invalidationFlag = false;
+
+						// Found. Ends the loop.
+						break;
+					}
+				}
+
+				// If invalidationFlag is true, then give user a warning (invalid argument)
+				if (invalidationFlag) {
+					System.out.println("Warning: unknown given parameter (" + userCommandArgs.group(1) + ").");
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("E: " + e.getMessage());
+		}
+	}
+
+	/**
+	* Check if wanted method of user input command has the necessary parameters, in order to correct funcionality.
+	* For example, it is obligatory that "magplot" method has the "type" parameter or, otherwise, it does
+	* not work. In this case, this function return false, and an warning was send to the user.
+	* @Return Null, if method dependencies of user input command was fully satisfied. Field name, otherwise.
+	* @Throws No exception.
+	*/
+	private String checkDependencies(String [] fieldNames) {
+		if (fieldNames != null) {
+			try {
+				// 
+				Boolean excessiveParameterFlag;
+
+				// For each given parameter name
+				for (String s : fieldNames) {
+					// Give user a warning, if given parameter does not match any available 
+					// field on the parameter keeper class.
+					excessiveParameterFlag = true;
+
+					// For each field available on parameter keeper class
+					for (Field f : Interpreter.parametersFieldNames) {
+						// If there's a match, i.e, if we found the wanted paremeter
+						if (f.getName().equals(s)) {
+							// Turn excessive parameter flag off
+							excessiveParameterFlag = false;
+							// If if it was not set on the last given user input command.
+							// In this case, the dependencies was not fully satisfied, and, 
+							//therefore, return field Name.
+							if (f.get(Interpreter.parametersKeeper) == null)
+								return s;
+
+							// Found method. break loop.
+							break;
+						}
+					}
+
+					// 
+					if (excessiveParameterFlag) {
+						System.out.println("Warning: unknown parameter (" + s +").");
+					}
+				}
+			} catch (NullPointerException npe) {
+				System.out.println("E: bad parameter checking dependencies.");
+			} catch (IllegalAccessException iae) {
+				System.out.println("E: bad access while checking dependencies.");
+			}
+		}
+
+		// Return null by default, i.e, method dependencies was fully satisfies by last
+		// user input command.
+		return null;
+	}
+
+	/**
 	* Main function for plotting. Uses given plotArguments to identify the correct plot asked by program user.
 	* @Throws No exceptions.
-	* @Return null, if a plot argument is invalid. True otherwise.
+	* @Return false, if a plot argument is invalid. True otherwise.
 	*/
 	private Boolean magplot(Matcher plotArguments) {
-		//This is the main plot method call. 
+		// This is the main plot method call. 
 		try {
+			// 
+			String [] dependenciesField = new String [1];
+			dependenciesField[0] = "type";
+
+			// If if this method paremeter dependencies was satisfied.
+			String notSatisfiedDependency = this.checkDependencies(dependenciesField);
+			if (notSatisfiedDependency != null) {
+				System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedDependency + "\".");
+				return false;
+			}
+
+			// 
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					//Pegar metodo com o nome "type"
+					//Dar invoke no metodo de nome "type".
+				}
+			});
+
 			return true;
 		} catch (NullPointerException npe) {
 			System.out.println("E: invalid parameters for plotting.");
+		//} catch (IllegalAccessException iae) {
+		//	System.out.println("E: Invalid plot type.");
 		}
-		return null;
+		return false;
 	}
 
 	//---------------------------------------------
@@ -156,7 +314,7 @@ public class Interpreter {
 
 				// Verify if user input made sense, according to the default regex pattern
 				if (regexTextMatched.find()) {
-					//Identify the correct regex command to be called
+					// Identify the correct regex command to be called
 					Method methodToBeCalled = null;
 					for (Method methodAux : this.interpreterMethods){
 						if (methodAux.getName().equals(regexTextMatched.group(1).toLowerCase())) {
@@ -165,7 +323,7 @@ public class Interpreter {
 						}
 					}
 
-					//Last but not least, check for forbidden input parameter redefinition
+					// Last but not least, check for forbidden input parameter redefinition
 					Matcher redefinitionCheck = checkInputRedundancyPattern.matcher(userInput);
 					if (redefinitionCheck.find()) {
 						System.out.println("E: found redefinition of input parameter \"" + 
@@ -173,12 +331,15 @@ public class Interpreter {
 						return false;
 					}
 
-					//Try to call the identified method, if any, and return true if success.
-					return ((regexTextMatched.group(2) != null ? 
+					// Preprocess user given parameters
+					this.processParameters(userInput);
+
+					// Try to call the identified method, if any, and return true if success.
+					return (Boolean) ((regexTextMatched.group(2) != null ? 
 						methodToBeCalled.invoke(this, regexTextMatched) : 
-						methodToBeCalled.invoke(this)) != null);
+						methodToBeCalled.invoke(this)));
 				}
-			} else {
+			} else if (!userInput.replaceAll("\\s+", "").equals("")){
 				//It is a arithmetic expression, call a method to solve it and then display the result.
 				System.out.println(this.arithmeticSolver.solve(userInput));
 			}
@@ -204,11 +365,10 @@ public class Interpreter {
 	* For test purpose. Should not exists on final version.
 	*/
 	public static void main(String[] args) {
-		//for (int i = 0; i < Interpreter.interpreterMethods.length; i++)
-		//	System.out.println(Interpreter.interpreterMethods[i].getName().toString());
-
 		Interpreter myInt = new Interpreter ();
-		while(!myInt.programEnds()) 
+		while(!myInt.programEnds()) {
+			System.out.print("> ");
 			myInt.getInput();
+		}
 	}
 }
