@@ -36,6 +36,7 @@ public class Interpreter {
 		// Interpreter parameters
 		protected String type;
 		protected String color;
+		protected String table;
 
 		/**
 		* Clear all fields (set to null) of this class
@@ -50,10 +51,7 @@ public class Interpreter {
 		}
 	}
 	//---------------------------------------------
-	// VARIABLE SECTION
-	// Tell if exit command is or is not been called.
-	private static boolean endOfProgram = false;
-
+	// CONSTANT SECTION
 	// Standard user input getter
 	private static final Scanner inputScanner = new Scanner(System.in);
 
@@ -63,11 +61,14 @@ public class Interpreter {
 	// Tell how many commands are available, on this program version, to recognition
 	private static final int commandQuantity = (Interpreter.interpreterMethods.length - 1);
 	
+	// Possible suported ways of parameter atributtion. Get flexible!
+	private static final String parameterAttribution = "(?:=+|is|equals?)";
+
 	// This is the default regex to match user input
-	private static final String defaultRegexString = "\\b(\\w+)(?:\\s+(\\w+)\\s*=\\s*(\\w+))*\\s*\\b";
+	private static final String defaultRegexString = "\\b(\\w+)(?:\\s+(\\w+)\\s*" + parameterAttribution + "\\s*(\\w+))*\\s*\\b";
 
 	// Regex used to parameter parsing
-	private static final String parameterParsingString = "\\b(\\w+)\\s*=\\s*(\\w+)\\b";
+	private static final String parameterParsingString = "\\b(\\w+)\\s*" + parameterAttribution + "\\s*(\\w+)\\b";
 
 	// If this regex matches, then the given command is not a arithmetic expression
 	private static final String negatedArithmeticRegexString = "[^-+*/^()0-9\\s.]+";
@@ -83,6 +84,12 @@ public class Interpreter {
 
 	// Get field labels of the InterpreterParameters class.
 	private static final Field[] parametersFieldNames = InterpreterParameters.class.getDeclaredFields();
+
+	//---------------------------------------------
+	//VARIABLE SECTION
+
+	// Tell if exit command is or is not been called.
+	private static boolean endOfProgram = false;
 
 	// These variables holds the regex compiled pattern, used to process user input
 	private Pattern negatedArithmeticRegexPattern; 
@@ -207,13 +214,13 @@ public class Interpreter {
 	private String checkDependencies(String [] fieldNames) {
 		if (fieldNames != null) {
 			try {
-				// 
+				// Give user a warning, if given parameter does not match any available 
+				// field on the parameter keeper class.
 				Boolean excessiveParameterFlag;
 
 				// For each given parameter name
 				for (String s : fieldNames) {
-					// Give user a warning, if given parameter does not match any available 
-					// field on the parameter keeper class.
+					// Set auxiliary flag to true
 					excessiveParameterFlag = true;
 
 					// For each field available on parameter keeper class
@@ -233,7 +240,7 @@ public class Interpreter {
 						}
 					}
 
-					// 
+					// Print a warning, if a unknown parameter was given by user
 					if (excessiveParameterFlag) {
 						System.out.println("Warning: unknown parameter (" + s +").");
 					}
@@ -251,16 +258,17 @@ public class Interpreter {
 	}
 
 	/**
-	* Main function for plotting. Uses given plotArguments to identify the correct plot asked by program user.
+	* Main function for plotting.
 	* @Throws No exceptions.
 	* @Return false, if a plot argument is invalid. True otherwise.
 	*/
-	private Boolean magplot(Matcher plotArguments) {
+	private Boolean magplot() {
 		// This is the main plot method call. 
 		try {
-			// 
-			String [] dependenciesField = new String [1];
+			// Create dependencies table
+			String [] dependenciesField = new String [2];
 			dependenciesField[0] = "type";
+			dependenciesField[1] = "table";
 
 			// If if this method paremeter dependencies was satisfied.
 			String notSatisfiedDependency = this.checkDependencies(dependenciesField);
@@ -269,7 +277,7 @@ public class Interpreter {
 				return false;
 			}
 
-			// 
+			// Obligatory parameters fully satisfied, try to call correct plot
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					//Pegar metodo com o nome "type"
@@ -284,6 +292,15 @@ public class Interpreter {
 		//	System.out.println("E: Invalid plot type.");
 		}
 		return false;
+	}
+
+	/**
+	* Removes every symbol that is not a blank space, letter or number on the given string, and
+	* set all letters to its lower case form.
+	* @Return New processed String.
+	*/
+	private String toCanonical (String unprocessedUserInput) {
+		return unprocessedUserInput.toLowerCase().replaceAll("[^\\w=\\s]", "");
 	}
 
 	//---------------------------------------------
@@ -307,6 +324,9 @@ public class Interpreter {
 
 			if (regexArithmeticNotMatched.find()) {
 				//It is not a arithmetic expression.
+
+				// Then transform the given command to a canonical form
+				userInput = toCanonical(userInput);
 
 				// Now, check user's next input line and
 				// get the result of the default regex match, if any.
@@ -335,9 +355,7 @@ public class Interpreter {
 					this.processParameters(userInput);
 
 					// Try to call the identified method, if any, and return true if success.
-					return (Boolean) ((regexTextMatched.group(2) != null ? 
-						methodToBeCalled.invoke(this, regexTextMatched) : 
-						methodToBeCalled.invoke(this)));
+					return (Boolean) methodToBeCalled.invoke(this);
 				}
 			} else if (!userInput.replaceAll("\\s+", "").equals("")){
 				//It is a arithmetic expression, call a method to solve it and then display the result.
