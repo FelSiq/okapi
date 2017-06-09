@@ -23,7 +23,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* @Return A ArrayList of ArrayLists of Double values
 	* @Throws No exception.
 	*/
-	public static List<List<Double>> initTable(int rowNum, int colNum) {
+	public static List<List<Double>> create(int rowNum, int colNum) {
 		try {
 			// Init given Table
 			List<List<Double>> table = new ArrayList<List<Double>>(rowNum);
@@ -48,8 +48,8 @@ public abstract class TableManager extends GeneralOkapi {
 	* @Return A ArrayList of Arraylists of Double values.
 	* @Throws No exception.
 	*/
-	public static List<List<Double>> initTable(int rowNum, int colNum, File inputFile) {
-		List<List<Double>> table = TableManager.initTable(rowNum, colNum);
+	public static List<List<Double>> create(int rowNum, int colNum, File inputFile) {
+		List<List<Double>> table = TableManager.create(rowNum, colNum);
 		try {
 			// Auxiliary instances
 			FileReader fileReader = new FileReader(inputFile);
@@ -142,7 +142,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Add a new column on the table and fill up with zeros.
 	* @Throws No exception.
 	*/
-	public static void addColumn(List<List<Double>> table) {
+	public static void addCol(List<List<Double>> table) {
 		try {
 			// If there's no rows at all, creates the first row
 			if (table.isEmpty()) {
@@ -167,7 +167,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* positions with zeros.
 	* @Throws No exception.
 	*/
-	public static void addColumn(List<List<Double>> table, File inputFile) {
+	public static void addCol(List<List<Double>> table, File inputFile) {
 		try {
 			// If there's no rows at all, creates the first row
 			if (table.isEmpty()) {
@@ -200,7 +200,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the last row on the given table
 	* @Throws No exceptions.
 	*/
-	public static void removeRow(List<List<Double>> table) {
+	public static void remRow(List<List<Double>> table) {
 		try {
 			if (!table.isEmpty())
 				table.remove(table.size() - 1);
@@ -215,7 +215,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove a entire row with given index on the given table
 	* @Throws No exceptions.
 	*/
-	public static void removeRow(List<List<Double>> table, int index) {
+	public static void remRow(List<List<Double>> table, int index) {
 		try {
 			table.remove(index);
 		} catch (NullPointerException npe) {
@@ -229,7 +229,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the last column on the given table
 	* @Throws No exceptions.
 	*/
-	public static void removeColumn(List<List<Double>> table) {
+	public static void remCol(List<List<Double>> table) {
 		try {
 			for (int i = 0; i < table.size(); i++) {
 				table.get(i).remove(table.get(i).size() - 1);
@@ -247,7 +247,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the column with given index on the given table
 	* @Throws No exceptions.
 	*/
-	public static void removeColumn(List<List<Double>> table, int index) {
+	public static void remCol(List<List<Double>> table, int index) {
 		try {
 			for (int i = 0; i < table.size(); i++) {
 				table.get(i).remove(index);
@@ -265,7 +265,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Calls toString() method to every List of the given List of Lists.
 	* @Throws No exception.
 	*/
-	public static void printTable(List<List<Double>> table) {
+	public static void print(List<List<Double>> table) {
 		try {
 			for (int i = 0; i < table.size(); i++) {
 				System.out.println(table.get(i).toString());
@@ -282,8 +282,8 @@ public abstract class TableManager extends GeneralOkapi {
 	public static void main(String[] args) {
 		Scanner auxScan = new Scanner(System.in);
 		File auxFile = new File(auxScan.next());
-		ArrayList<List<Double>> aux = (ArrayList<List<Double>>) TableManager.initTable(2, 3, auxFile);
-		printTable(aux);
+		ArrayList<List<Double>> aux = (ArrayList<List<Double>>) TableManager.create(2, 3, auxFile);
+		print(aux);
 
 		// Lacks System.in support
 

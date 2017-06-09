@@ -6,6 +6,9 @@ import plotsOkapiPack.*;
 import java.util.Comparator;
 import java.util.Scanner;
 import java.util.Arrays;
+import java.util.List;
+import java.util.TreeMap;
+import java.io.File;
 
 // 1. For regex (interpreting the user input)
 import java.util.regex.PatternSyntaxException;
@@ -33,10 +36,25 @@ public class Interpreter {
 	// IINER CLASS SECTION
 	// Inner class, which hold up all Interpreter parameters
 	private static class InterpreterParameters {
-		// Interpreter parameters
-		protected String type;
+		//---------------------------------------------
+		// Interpreter parameters set
+		// Label legend:
+		// 		-> Obligatory: every suboperation from this command need that parameter
+		//		-> Subdependencie: If determined condition meet, that parameter turns obligatory
+		//		-> unlabeled: always optional
+		// Plot and/or matrix operation
+		protected String type; //Obligatory for plot
 		protected String color;
-		protected String table;
+		protected String table; //Obligatory for matrix
+
+		// Table and/or matrix operations
+		protected String operation; //Obligatory for both table and matrix
+		protected String name; //Obligatory for both table and matrix
+		protected String file;
+		protected String index; //subdependencie: operation!=init and operation!=print
+		protected String rownum; //Subdependencie: operation=init
+		protected String colnum; //Subdependencie: operation=init
+		//---------------------------------------------
 
 		/**
 		* Clear all fields (set to null) of this class
@@ -65,16 +83,16 @@ public class Interpreter {
 	private static final String parameterAttribution = "(?:=+|is|equals?)";
 
 	// This is the default regex to match user input
-	private static final String defaultRegexString = "\\b(\\w+)(?:\\s+(\\w+)\\s*" + parameterAttribution + "\\s*(\\w+))*\\s*\\b";
+	private static final String defaultRegexString = "\\b([\\w.]+)(?:\\s+([\\w.]+)\\s*" + parameterAttribution + "\\s*([\\w.]+))*\\s*\\b";
 
 	// Regex used to parameter parsing
-	private static final String parameterParsingString = "\\b(\\w+)\\s*" + parameterAttribution + "\\s*(\\w+)\\b";
+	private static final String parameterParsingString = "\\b([\\w.]+)\\s*" + parameterAttribution + "\\s*([\\w.]+)\\b";
 
 	// If this regex matches, then the given command is not a arithmetic expression
 	private static final String negatedArithmeticRegexString = "[^-+*/^()0-9\\s.]+";
 
 	// Checks if there is at least on redefinition of a string parameter from a user input
-	private static final String checkInputRedundancyString = "\\b(\\w+)\\s*=.+(?:\\1)(?=\\s*=)\\b";
+	private static final String checkInputRedundancyString = "\\b([\\w.]+)\\s*" + parameterAttribution + ".+(?:\\1)(?=\\s*" + parameterAttribution + ")\\b";
 
 	// Instantiation of arithmetic expression solver
 	private static final Arithmetic arithmeticSolver = new Arithmetic();
@@ -95,7 +113,10 @@ public class Interpreter {
 	private Pattern negatedArithmeticRegexPattern; 
 	private Pattern checkInputRedundancyPattern; 
 	private Pattern parameterParsingPattern; 
-	private Pattern mainRegexPattern; 
+	private Pattern mainRegexPattern;
+
+	// Colletion of all user created tables
+	private TreeMap<String, List<List<Double>>> createdTables;
 
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
@@ -121,6 +142,9 @@ public class Interpreter {
 						return a.getName().compareTo(b.getName());
 					}
 				});
+
+			// Init the TreeMap which holds all user create tables
+			this.createdTables = new TreeMap<String, List<List<Double>>>();
 		} catch (PatternSyntaxException pse) {
 			System.out.println("E: Incorrect regex pattern.");
 		}
@@ -270,7 +294,7 @@ public class Interpreter {
 			dependenciesField[0] = "type";
 			dependenciesField[1] = "table";
 
-			// If if this method paremeter dependencies was satisfied.
+			// Check if this method paremeter dependencies was satisfied.
 			String notSatisfiedDependency = this.checkDependencies(dependenciesField);
 			if (notSatisfiedDependency != null) {
 				System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedDependency + "\".");
@@ -291,6 +315,109 @@ public class Interpreter {
 		//} catch (IllegalAccessException iae) {
 		//	System.out.println("E: Invalid plot type.");
 		}
+
+		//Return false by default
+		return false;
+	}
+
+	/**
+	* Works with all operations of table command.
+	* @Throws No exception.
+	* @Return
+	*/
+	private Boolean table() {
+		try {
+			// Create dependencies table
+			String [] dependenciesField = new String [2];
+			dependenciesField[0] = "operation";
+			dependenciesField[1] = "name";
+
+			// Check if this method paremeter dependencies was satisfied.
+			String notSatisfiedDependency = this.checkDependencies(dependenciesField);
+			if (notSatisfiedDependency != null) {
+				System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedDependency + "\".");
+				return false;
+			}
+
+			// Dependencies satisfied, work with the table
+
+			// Search the correct method to invoke
+			Method correctMethod = null;
+			for (Method k : TableManager.class.getDeclaredMethods()) {
+				// Search for the correct method to be invoked
+				if (toCanonical(k.getName()).equals(this.parametersKeeper.operation)) {
+					// Found correct method.
+					correctMethod = k;
+					// Don't need to search anymore, break loop.
+					break;
+				}
+			}
+			if (correctMethod == null) {
+				System.out.println("E: Invalid table operation.");
+				return false;
+			}
+
+			// Check if given source file was given
+			File sourceFile = null;
+			if (this.parametersKeeper.file != null)
+				sourceFile = new File(this.parametersKeeper.file);
+
+			// If operation is "create", then this is a special case (two steps):
+			if (toCanonical(correctMethod.getName()).equals("create")) {
+				// 1. Check subdependencies
+				String [] subdependenciesField = new String [2];
+				subdependenciesField[0] = "rownum";
+				subdependenciesField[1] = "colnum";
+				String notSatisfiedSubdependency = this.checkDependencies(subdependenciesField);
+				if (notSatisfiedDependency != null) {
+					System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedSubdependency + "\".");
+					return false;
+				}
+				// 2. Creates the new table with specified user parameters
+				List<List<Double>> newTable = null;
+				// Check if a source file was given by user
+				if (sourceFile != null) {
+					// Source file was given, use it
+					newTable = TableManager.create(
+						Integer.parseInt(this.parametersKeeper.rownum), 
+						Integer.parseInt(this.parametersKeeper.colnum),
+						sourceFile);
+				} else {
+					// No source file available
+					newTable = TableManager.create(
+						Integer.parseInt(this.parametersKeeper.rownum), 
+						Integer.parseInt(this.parametersKeeper.colnum));
+				}
+				// 3. Need to add the new table to the user table collection, with the specified name.
+				if (newTable != null)
+					this.createdTables.put(this.parametersKeeper.name, newTable);
+			} else {
+				List<List<Double>> selectedTable = this.createdTables.get(this.parametersKeeper.name);
+				// Method is not the "create" special case
+				if (selectedTable != null) {
+					if (sourceFile != null){
+						// Source/Input File as extra argument
+						correctMethod.invoke(null, selectedTable, sourceFile);
+					} else if (this.parametersKeeper.index != null) {
+						// A integer/index as extra argument
+						correctMethod.invoke(null, selectedTable, 
+							Integer.parseInt(this.parametersKeeper.index));
+					} else {
+						// Only table as argument (no extra arguments)
+						correctMethod.invoke(null, selectedTable);
+					}
+				} else System.out.println("E: can't find any table named \"" + this.parametersKeeper.name + "\".");
+			}
+			return true;
+		} catch (NullPointerException npe) {
+			System.out.println("E: failed to work with the table.");
+		} catch (IllegalAccessException iae) {
+			System.out.println(iae.getMessage());
+		} catch (InvocationTargetException ite) {
+			System.out.println(ite.getMessage());
+		}
+
+		//Return false by default
 		return false;
 	}
 
@@ -300,7 +427,7 @@ public class Interpreter {
 	* @Return New processed String.
 	*/
 	private String toCanonical (String unprocessedUserInput) {
-		return unprocessedUserInput.toLowerCase().replaceAll("[^\\w=\\s]", "");
+		return unprocessedUserInput.toLowerCase().replaceAll("[^\\w=\\s.]", "");
 	}
 
 	//---------------------------------------------
