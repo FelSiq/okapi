@@ -42,16 +42,21 @@ public class Interpreter {
 		// 		-> Obligatory: every suboperation from this command need that parameter
 		//		-> Subdependencie: If determined condition meet, that parameter turns obligatory
 		//		-> unlabeled: always optional
-		// Plot and/or matrix operation
-		protected String type; //Obligatory for plot
+		// Plot operation
+		protected String type; //Obligatory
 		protected String color;
-		protected String table; //Obligatory for matrix
+		protected String table;
+
+		// Matrix operation
+		protected String a; // Obligatory - Fst operand of the matrix operation
+		protected String b; // Obligatory - Snd operand of the matrix operation
+		protected String r; // Name of the table created to hold resultand matrix 
 
 		// Table and/or matrix operations
 		protected String operation; //Obligatory for both table and matrix
-		protected String name; //Obligatory for both table and matrix
-		protected String file;
-		protected String index; //subdependencie: operation!=init and operation!=print
+		protected String name; //Obligatory for table
+		protected String file; // Input file for the table or output file for the resultant matrix.
+		protected String index; 
 		protected String rownum; //Subdependencie: operation=init
 		protected String colnum; //Subdependencie: operation=init
 		//---------------------------------------------
@@ -102,6 +107,18 @@ public class Interpreter {
 
 	// Get field labels of the InterpreterParameters class.
 	private static final Field[] parametersFieldNames = InterpreterParameters.class.getDeclaredFields();
+
+	// Dependencies (requested parameters) of "matrix" command
+	private static final String[] matrixOperationDependencies = {"operation", "a", "b"};
+
+	// Dependencies (requested parameters) of "table" command
+	private static final String[] tableOperationDependencies = {"operation", "name"};
+
+	// Subdependencies (obligatory just for "create" operation) parameters of "create" operation, in "table" command 
+	private static final String[] tableOperationSubdependencies = {"rownum", "colnum"};
+
+	// Dependencies (requested parameters) of "plot" command
+	private static final String[] plotOperationDependencies = {"type", "table"};
 
 	//---------------------------------------------
 	//VARIABLE SECTION
@@ -235,7 +252,8 @@ public class Interpreter {
 	* @Return Null, if method dependencies of user input command was fully satisfied. Field name, otherwise.
 	* @Throws No exception.
 	*/
-	private String checkDependencies(String [] fieldNames) {
+	private String checkDependencies(String[] fieldNames) {
+		String notSatisfiedDependency = null;
 		if (fieldNames != null) {
 			try {
 				// Give user a warning, if given parameter does not match any available 
@@ -256,8 +274,10 @@ public class Interpreter {
 							// If if it was not set on the last given user input command.
 							// In this case, the dependencies was not fully satisfied, and, 
 							//therefore, return field Name.
-							if (f.get(Interpreter.parametersKeeper) == null)
-								return s;
+							if (f.get(Interpreter.parametersKeeper) == null) {
+								notSatisfiedDependency = (notSatisfiedDependency != null ? notSatisfiedDependency : "") 
+									+ ("\n\t> \"" + s + "\"");
+							}
 
 							// Found method. break loop.
 							break;
@@ -278,7 +298,7 @@ public class Interpreter {
 
 		// Return null by default, i.e, method dependencies was fully satisfies by last
 		// user input command.
-		return null;
+		return notSatisfiedDependency;
 	}
 
 	/**
@@ -289,15 +309,11 @@ public class Interpreter {
 	private Boolean magplot() {
 		// This is the main plot method call. 
 		try {
-			// Create dependencies table
-			String [] dependenciesField = new String [2];
-			dependenciesField[0] = "type";
-			dependenciesField[1] = "table";
-
 			// Check if this method paremeter dependencies was satisfied.
-			String notSatisfiedDependency = this.checkDependencies(dependenciesField);
+			String notSatisfiedDependency = this.checkDependencies(this.tableOperationDependencies);
 			if (notSatisfiedDependency != null) {
-				System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedDependency + "\".");
+				System.out.println("Warning: function parameters not fully satisfied, missing:" + 
+					notSatisfiedDependency);
 				return false;
 			}
 
@@ -327,15 +343,11 @@ public class Interpreter {
 	*/
 	private Boolean table() {
 		try {
-			// Create dependencies table
-			String [] dependenciesField = new String [2];
-			dependenciesField[0] = "operation";
-			dependenciesField[1] = "name";
-
 			// Check if this method paremeter dependencies was satisfied.
-			String notSatisfiedDependency = this.checkDependencies(dependenciesField);
+			String notSatisfiedDependency = this.checkDependencies(this.tableOperationDependencies);
 			if (notSatisfiedDependency != null) {
-				System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedDependency + "\".");
+				System.out.println("Warning: function parameters not fully satisfied, missing:" 
+					+ notSatisfiedDependency);
 				return false;
 			}
 
@@ -363,13 +375,10 @@ public class Interpreter {
 
 			// If operation is "create", then this is a special case.
 			if (toCanonical(correctMethod.getName()).equals("create")) {
-				// 1. Check "create" command subdependencies (rownum and colnum)
-				String [] subdependenciesField = new String [2];
-				subdependenciesField[0] = "rownum";
-				subdependenciesField[1] = "colnum";
-				String notSatisfiedSubdependency = this.checkDependencies(subdependenciesField);
+				String notSatisfiedSubdependency = this.checkDependencies(this.tableOperationSubdependencies);
 				if (notSatisfiedSubdependency != null) {
-					System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedSubdependency + "\".");
+					System.out.println("Warning: function parameters not fully satisfied, missing:"	
+						+ notSatisfiedSubdependency);
 					return false;
 				}
 
@@ -427,12 +436,8 @@ public class Interpreter {
 
 			// Return true
 			return true;
-		} catch (NullPointerException npe) {
-			System.out.println("E: failed to work with the table.");
-		} catch (IllegalAccessException iae) {
-			System.out.println(iae.getMessage());
-		} catch (InvocationTargetException ite) {
-			System.out.println(ite.getMessage());
+		} catch (NullPointerException | IllegalAccessException | InvocationTargetException e) {
+			System.out.println(e.getMessage());
 		}
 
 		//Return false by default
@@ -440,7 +445,91 @@ public class Interpreter {
 	}
 
 	/**
-	* Removes every symbol that is not a blank space, letter or number on the given string, and
+	* This method should handle all matrix operations supported by this program.
+	* @Return False, if user command does not fills up all necessary conditions for the operation. True, otherwise.
+	* @Throws No exceptions.
+	*/
+	private Boolean matrix() {
+		try {
+			// Check if this method paremeter dependencies was satisfied.
+			String notSatisfiedDependency = this.checkDependencies(this.matrixOperationDependencies);
+			if (notSatisfiedDependency != null) {
+				System.out.println("Warning: function parameters not fully satisfied, missing:" + 
+					notSatisfiedDependency);
+				return false;
+			}
+
+			// Conditions meet. 
+
+			// Search the correct method to invoke
+			Method correctMethod = null;
+			for (Method k : TableManager.class.getDeclaredMethods()) {
+				// Search for the correct method to be invoked
+				if (toCanonical(k.getName()).equals(this.parametersKeeper.operation)) {
+					// Found correct method.
+					correctMethod = k;
+					// Don't need to search anymore, break loop.
+					break;
+				}
+			}
+			if (correctMethod == null) {
+				System.out.println("E: Invalid matrix operation.");
+				return false;
+			}
+
+			// Get the A operand
+			List<List<Double>> matrixOperandA = this.createdTables.get(this.parametersKeeper.a);
+
+			// Get the B operand
+			List<List<Double>> matrixOperandB = this.createdTables.get(this.parametersKeeper.b);
+
+			// Check if specified table, to be worked on, exists				
+			if (matrixOperandA != null && matrixOperandB != null) {
+				// Invoke the correct matrix operation with the given operands
+				List<List<Double>> matrixOperandR = correctMethod.invoke(null, matrixOperandA, matrixOperandB);
+
+				// Use "r" parameter and "file" after here.
+				if (matrixOperandR != null){
+					if (this.parametersKeeper.file == null && this.parametersKeeper.r == null) {
+						// User does not gave neither output file neither new table name to store resultant matrix,
+						// then just print it on the STDOUT.
+						TableManager.print(matrixOperandR);
+					} else {
+						if (this.parametersKeeper.r != null) {
+							// User gives a table name to store result value, store the table
+							this.createdTables.put(this.parametersKeeper.r, matrixOperandR);
+						} 
+
+						if (this.parametersKeeper.file != null) {
+							// User gives a output file to store this resultant matrix, create this file
+							// and append it.
+							// To be worked on.
+						}
+					}
+				} else {
+					// Can't create resultant matrix, show error message
+					System.out.println("E: can't create resultant matrix.");
+				}
+
+			} else {
+				// Error message, if user input command specified a inexistent table
+				System.out.println("E: can't find any table named \"" + 
+					(matrixOperandA == null ? this.parametersKeeper.a : this.parametersKeeper.b) + 
+					"\". Please, \"create\" it first.");
+			}
+
+			// Return true
+			return true;
+		} catch (NullPointerException e){//| IllegalAccessException | InvocationTargetException e) {
+			System.out.println(e.getMessage());
+		}
+
+		//Return false by default
+		return false;
+	}
+
+	/**
+	* Removes every symbol that is not a blank space, letter, dot (.) or number on the given string, and
 	* set all letters to its lower case form.
 	* @Return New processed String.
 	*/
