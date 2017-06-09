@@ -323,7 +323,7 @@ public class Interpreter {
 	/**
 	* Works with all operations of table command.
 	* @Throws No exception.
-	* @Return
+	* @Return False, if something went wrong within user command interpretation. True, otherwise.
 	*/
 	private Boolean table() {
 		try {
@@ -339,8 +339,7 @@ public class Interpreter {
 				return false;
 			}
 
-			// Dependencies satisfied, work with the table
-
+			// "TABLE" command dependencies was satisfied, at this point, now work with the operation
 			// Search the correct method to invoke
 			Method correctMethod = null;
 			for (Method k : TableManager.class.getDeclaredMethods()) {
@@ -362,19 +361,21 @@ public class Interpreter {
 			if (this.parametersKeeper.file != null)
 				sourceFile = new File(this.parametersKeeper.file);
 
-			// If operation is "create", then this is a special case (two steps):
+			// If operation is "create", then this is a special case.
 			if (toCanonical(correctMethod.getName()).equals("create")) {
-				// 1. Check subdependencies
+				// 1. Check "create" command subdependencies (rownum and colnum)
 				String [] subdependenciesField = new String [2];
 				subdependenciesField[0] = "rownum";
 				subdependenciesField[1] = "colnum";
 				String notSatisfiedSubdependency = this.checkDependencies(subdependenciesField);
-				if (notSatisfiedDependency != null) {
+				if (notSatisfiedSubdependency != null) {
 					System.out.println("Warning: function parameters not fully satisfied, missing \"" + notSatisfiedSubdependency + "\".");
 					return false;
 				}
+
 				// 2. Creates the new table with specified user parameters
 				List<List<Double>> newTable = null;
+
 				// Check if a source file was given by user
 				if (sourceFile != null) {
 					// Source file was given, use it
@@ -388,12 +389,22 @@ public class Interpreter {
 						Integer.parseInt(this.parametersKeeper.rownum), 
 						Integer.parseInt(this.parametersKeeper.colnum));
 				}
-				// 3. Need to add the new table to the user table collection, with the specified name.
-				if (newTable != null)
+
+				if (newTable != null) {
+					// 3. Need to add the new table to the user table collection, with the specified name.
 					this.createdTables.put(this.parametersKeeper.name, newTable);
+				} else {
+					// Error message
+					System.out.println("E: can't create table.");
+				}
 			} else {
+				// At this point, user command does not call "create" operation.
+				// Then it's not a special case to be handled.
+				
+				// Get the user specified table
 				List<List<Double>> selectedTable = this.createdTables.get(this.parametersKeeper.name);
-				// Method is not the "create" special case
+				
+				// Checks if specified table, to be worked on, exists				
 				if (selectedTable != null) {
 					if (sourceFile != null){
 						// Source/Input File as extra argument
@@ -406,8 +417,15 @@ public class Interpreter {
 						// Only table as argument (no extra arguments)
 						correctMethod.invoke(null, selectedTable);
 					}
-				} else System.out.println("E: can't find any table named \"" + this.parametersKeeper.name + "\".");
+				} else {
+					// Error message, if user input command specified a inexistent table
+					System.out.println("E: can't find any table named \"" + 
+						this.parametersKeeper.name + 
+						"\". Please, \"create\" it first.");
+				}
 			}
+
+			// Return true
 			return true;
 		} catch (NullPointerException npe) {
 			System.out.println("E: failed to work with the table.");
