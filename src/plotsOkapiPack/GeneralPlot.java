@@ -35,6 +35,9 @@ public abstract class GeneralPlot {
 	// Title displayed on the plotting window
 	public static final String PLOT_WINDOW_TITLE = "Okapi Magplot Interface";
 
+	// Main color scheme of the okapi project
+	public static final Color OKAPI_COLOR = new Color(0xAD, 0xD7, 0xC4);
+
 	// -------------------------------------------------
 	// VARIABLE SECTION
 	// Controls the display of the plot axis
@@ -352,6 +355,9 @@ public abstract class GeneralPlot {
 			// Add the title to the brand-new title panel
 			titlePanel.add(graphicTitle);
 
+			//
+			titlePanel.setBackground(GeneralPlot.OKAPI_COLOR);
+
 			// Add the Title Panel to the top of the given JFrame
 			myFrame.add(titlePanel, BorderLayout.PAGE_START);
 		}
@@ -414,14 +420,14 @@ public abstract class GeneralPlot {
 		setFrameCentered(newFrame);
 
 		// Change interface L&F to system L&F (Metal by default)
-		try {
+		/*try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException | 
 				InstantiationException | 
 				IllegalAccessException | 
 				UnsupportedLookAndFeelException e) {
 			System.out.println(e.getMessage());
-		}
+		}*/
 
 		// Set visible
 		newFrame.setVisible(true);
@@ -433,9 +439,16 @@ public abstract class GeneralPlot {
 	* Create a Panel button only
 	*/
 	private JPanel createButtonsPanel(JButton... buttons) {
+		// Instantiate a new Panel
 		JPanel newButtonPanel = new JPanel();
+
+		// Add given buttons to it
 		for (JButton jb : buttons)
 			newButtonPanel.add(jb);
+
+		// Set bg color for aesthetics
+		newButtonPanel.setBackground(GeneralPlot.OKAPI_COLOR);
+
 		return newButtonPanel;
 	}
 
@@ -572,8 +585,8 @@ public abstract class GeneralPlot {
 			public void run() {
 				GeneralPlot.setAxis();
 				GeneralPlot.setTitle("TestGraphic");
-				GeneralPlot.setXLimits(-20.0, 1220.0, 15);
-				GeneralPlot.setYLimits(-20.0, 620.0, 10);
+				GeneralPlot.setXLimits(-10.0, 300.0, 10);
+				GeneralPlot.setYLimits(-50.0, 200.0, 10);
 				GeneralPlot.setXAxisLabel("X-label");
 				GeneralPlot.setYAxisLabel("Y-label");
 				
