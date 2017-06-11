@@ -21,6 +21,7 @@ import java.util.regex.Matcher;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
+import java.lang.Class;
 
 // 3. For swing thread
 import javax.swing.SwingUtilities;
@@ -327,12 +328,9 @@ public class Interpreter {
 				List<List<Double>> currentTable = this.createdTables.get(tableName);
 				// Print it's name and its dimensions, if not empty
 				System.out.println("\t> " + tableName + 
-					(
-						currentTable.get(0) != null 
+					(currentTable.get(0) != null 
 						?	" [" + currentTable.size() + ", " + currentTable.get(0).size() + "]"
-						:	" (empty)"
-						)
-					);
+						:	" (empty)"));
 			}
 		} else {
 			// No data table found.
@@ -425,11 +423,35 @@ public class Interpreter {
 					}
 				}
 
+
 				// Obligatory parameters fully satisfied, try to call correct plot
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						//Pegar metodo com o nome "type"
-						//Dar invoke no metodo de nome "type".
+						try {
+							//Pegar metodo com o nome "type"
+							//Dar invoke no metodo de nome "type".
+							//Class plotType = Class.forName(Interpreter.PARAM_KEEPER.type);
+							/*Class plotType = Class.forName("PlotBox");
+							
+							// Get class setup method
+							Method setupMethod = plotType.getClass().getDeclaredMethod("setup" + plotType.getClass().getName(), (Class<?>[]) null);
+							
+							// Invoke class plot setup method
+							setupMethod.invoke(null);*/
+
+							// Instantiate a class of this type.
+							GeneralPlot.setAxis();
+							GeneralPlot myPlot = new PlotBox();
+
+							// Get plot method of the class
+							//Method plotMethod = plotType.getClass().getDeclaredMethod("plot", (Class<?>[]) null);
+
+							// Invoke plot method
+							//plotMethod.invoke(myPlot);
+						} catch (/*ClassNotFoundException | IllegalAccessException | 
+							InvocationTargetException | NoSuchMethodException*/ Exception e) {
+							System.out.println(e.getMessage());
+						}
 					}
 				});
 

@@ -2,7 +2,6 @@ package plotsOkapiPack;
 // -----------------------------------------
 // IMPORT SECTION
 // 1. Swing 
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.UIManager;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -24,6 +23,7 @@ import java.awt.Color;
 
 // 4. Collections
 import java.util.Collections;
+import java.util.Set;
 import java.util.List;
 
 // To be deleted.
@@ -141,6 +141,8 @@ public abstract class GeneralPlot {
 		// Default pixel-offset value of a character
 		private static final int CHAR_PIXELOFFSET = 7;
 
+		private static final int MARK_HALFSIZE = 3;
+
 		// Values correspondent to x-axis on the Jframe
 		private static final int X_AXIS_X1 = 12;
 		private static final int X_AXIS_X2 = 620;
@@ -167,36 +169,42 @@ public abstract class GeneralPlot {
 		* Auxiliary method, used to print both x-axis base line and x-axis label
 		*/
 		private void drawXAxis(Graphics g) {
-			// Print x-axis base line
-			g.drawLine(
-				MakeAxis.X_AXIS_X1, 
-				MakeAxis.Y_AXIS_Y1 - this.x_axis_offset + Y_AXIS_Y2,
-				MakeAxis.X_AXIS_X2,
-				MakeAxis.Y_AXIS_Y1 - this.x_axis_offset + Y_AXIS_Y2);
+			// If false, don't display the x-axis
+			if (GeneralPlot.plot_xlim_max > GeneralPlot.plot_xlim_min) {
+				// Print x-axis base line
+				g.drawLine(
+					MakeAxis.X_AXIS_X1, 
+					MakeAxis.Y_AXIS_Y1 - this.x_axis_offset + Y_AXIS_Y2,
+					MakeAxis.X_AXIS_X2,
+					MakeAxis.Y_AXIS_Y1 - this.x_axis_offset + Y_AXIS_Y2);
 
-			// Draw x-axis label, if available
-			if (this.x_axis_label != null)
-				g.drawString(this.x_axis_label, 
-					MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - MakeAxis.LABEL_OFFSET + 1 - MakeAxis.CHAR_PIXELOFFSET * this.x_axis_label.length(), 
-					MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - MakeAxis.LABEL_OFFSET - this.x_axis_offset);
+				// Draw x-axis label, if available
+				if (this.x_axis_label != null)
+					g.drawString(this.x_axis_label, 
+						MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - MakeAxis.LABEL_OFFSET + 1 - MakeAxis.CHAR_PIXELOFFSET * this.x_axis_label.length(), 
+						MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - MakeAxis.LABEL_OFFSET - this.x_axis_offset);
+			}
 		}
 
 		/**
 		* Auxiliary method, used to print both y-axis base line and y-axis label
 		*/
 		private void drawYAxis(Graphics g) {
-			// Print y-axis base line
-			g.drawLine(
-				this.y_axis_offset, 
-				MakeAxis.Y_AXIS_Y1,
-				this.y_axis_offset,
-				MakeAxis.Y_AXIS_Y2);
+			// If false, don't display the y-axis
+			if (GeneralPlot.plot_ylim_max > GeneralPlot.plot_ylim_min) {
+				// Print y-axis base line
+				g.drawLine(
+					this.y_axis_offset, 
+					MakeAxis.Y_AXIS_Y1,
+					this.y_axis_offset,
+					MakeAxis.Y_AXIS_Y2);
 
-			// Draw y-axis label, if available
-			if (this.y_axis_label != null)
-				g.drawString(this.y_axis_label, 
-					MakeAxis.Y_AXIS_X2 + MakeAxis.LABEL_OFFSET + this.y_axis_offset, 
-					MakeAxis.Y_AXIS_Y2 + MakeAxis.LABEL_OFFSET);
+				// Draw y-axis label, if available
+				if (this.y_axis_label != null)
+					g.drawString(this.y_axis_label, 
+						MakeAxis.Y_AXIS_X2 + MakeAxis.LABEL_OFFSET + this.y_axis_offset, 
+						MakeAxis.Y_AXIS_Y2 + MakeAxis.LABEL_OFFSET);
+			}
 		}
 
 		/**
@@ -220,8 +228,8 @@ public abstract class GeneralPlot {
 
 				// Draw a small horizontal mark on the correspondent x-value of the current interval value
 				g.drawLine(
-					xPlaceInteger, MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - this.x_axis_offset - 2, 
-					xPlaceInteger, MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - this.x_axis_offset + 2);
+					xPlaceInteger, MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - this.x_axis_offset - MakeAxis.MARK_HALFSIZE, 
+					xPlaceInteger, MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - this.x_axis_offset + MakeAxis.MARK_HALFSIZE);
 
 				// Print up the correspondent interval value, on the current x-axis JFrame position
 				g.drawString(
@@ -252,8 +260,8 @@ public abstract class GeneralPlot {
 
 				// Draw a small horizontal mark on the correspondent y-value of the current interval value
 				g.drawLine(
-					this.y_axis_offset - 2, yPlaceInteger,
-					this.y_axis_offset + 2, yPlaceInteger);
+					this.y_axis_offset - MakeAxis.MARK_HALFSIZE, yPlaceInteger,
+					this.y_axis_offset + MakeAxis.MARK_HALFSIZE, yPlaceInteger);
 
 				// Print up the correspondent interval value, on the current y-axis JFrame position
 				g.drawString(
@@ -423,16 +431,6 @@ public abstract class GeneralPlot {
 		// Set this frame to the center of the monitor 
 		setFrameCentered(newFrame);
 
-		// Change interface L&F to system L&F (Metal by default)
-		/*try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException | 
-				InstantiationException | 
-				IllegalAccessException | 
-				UnsupportedLookAndFeelException e) {
-			System.out.println(e.getMessage());
-		}*/
-
 		// Set visible
 		newFrame.setVisible(true);
 
@@ -459,7 +457,7 @@ public abstract class GeneralPlot {
 	/**
 	* GUI plot initialization
 	*/
-	private GeneralPlot() {
+	protected GeneralPlot() {
 		// Instantiate auxiliary buttons
 		// Save button (create a output file with the given graphic)
 		JButton bSave = createButton("Save", KeyEvent.VK_P);
@@ -532,8 +530,9 @@ public abstract class GeneralPlot {
 	*/
 	public static void setXLimits(Double xMin, Double xMax) throws IllegalArgumentException {
 		// Check if parameters are mathematically possible
-		if (xMin >= xMax)
-			throw new IllegalArgumentException("E: min-x value must be strictly smaller than max-x.");
+		// If equals, then its a unidimensional plot
+		if (xMin > xMax)
+			throw new IllegalArgumentException("E: min-x value must be smaller or equal than max-x.");
 
 		// Set up new values for variables
 		GeneralPlot.plot_xlim_min = xMin;
@@ -550,8 +549,9 @@ public abstract class GeneralPlot {
 	*/
 	public static void setYLimits(Double yMin, Double yMax) throws IllegalArgumentException {
 		// Check if parameters are mathematically possible
-		if (yMin >= yMax)
-			throw new IllegalArgumentException("E: min-y value must be strictly smaller than max-y.");
+		// If equals, then its a unidimensional plot
+		if (yMin > yMax)
+			throw new IllegalArgumentException("E: min-y value must be smaller or equal than max-y.");
 
 		// Set up new values for variables
 		GeneralPlot.plot_ylim_min = yMin;
@@ -654,46 +654,83 @@ public abstract class GeneralPlot {
 	* Automatically adjust plot visual parameters to the given table.
 	* @Throws NullPointerException, if given table does not have any valid element.
 	*/
-	public static void adjustParametersToTable(List<List<Double>> sourceTable) throws NullPointerException {
+	public static void adjustParametersToTable(List<List<Double>> sourceTable) throws NullPointerException, IllegalArgumentException {
 		// Verify if given table is a valid plotting table
 		if (sourceTable == null || sourceTable.size() == 0 || 
 			sourceTable.get(0) == null || sourceTable.get(0).size() == 0)
 			throw new NullPointerException("E: invalid table to adjust plot dimensions.");
 
+		// This function automatically detects if this is a 2 x n table ou m x 2 table.
+		// This application will only supports f(y) = x plotting.
+
+		// Verify if this is a 2xN or Mx2 table.
+		int colnum = sourceTable.get(0).size(), rownum = sourceTable.size();
+		if (colnum > 2 && rownum > 2)
+			throw new IllegalArgumentException("E: can only plot correctly KxN or MxK, K = {1,2} tables.");
+
 		// Auxiliary variables, to set x-axis and y-axis limits adequately.
-		Double maxValue = Double.MIN_VALUE, minValue = Double.MAX_VALUE, dummy;
+		Double xMaxValue = Double.MIN_VALUE, xMinValue = Double.MAX_VALUE;
+		Double yMaxValue = Double.MIN_VALUE, yMinValue = Double.MAX_VALUE;
+		Double dummy;
 
 		// Get min-max values to the given table
-		for (List<Double> ld : sourceTable) {
-			// Get max value of the current list and compare to the global max value
-			dummy = Collections.max(ld);
-			maxValue = (maxValue < dummy ? dummy : maxValue);
-			// Get min value of the current list and compare to the global min value
-			dummy = Collections.min(ld);
-			minValue = (minValue > dummy ? dummy : minValue);
+		// Detect if this is a 2-1xN table or a 2-1xM table
+		if (rownum <= 2) {
+			// This is a 2-1xN table, i.e:
+			// x -> (x1, x2, x3, ..., xn)
+			// y -> (x1, x2, x3, ..., xn) (optional row)
+
+			// Get max value of x
+			xMaxValue = Collections.max(sourceTable.get(0));
+			xMinValue = Collections.min(sourceTable.get(0));
+			
+			// Verify if there's a y correspondent row (bidimensional plot, and not unidimensional)
+			if (rownum == 2) {
+				// Get y max value
+				yMaxValue = Collections.max(sourceTable.get(1));
+				yMinValue = Collections.min(sourceTable.get(1));
+			}
+		} else {
+			// This is a Mx2-1 table, i.e:
+			// 	x    y
+			//  \/   \/
+			// (x1) (y1)
+			// (x2) (y2)
+			// (x3) (y3)
+			// (..) (..)
+			// (xn) (yn)
+			for (List<Double> ld : sourceTable) {
+				// Get max value of x
+				dummy = ld.get(0);
+				xMaxValue = (xMaxValue < dummy ? dummy : xMaxValue);
+				xMinValue = (xMinValue > dummy ? dummy : xMinValue);
+
+				// Verify if there's a y correspondent column (bidimensional plot, and not unidimensional)
+				if (colnum == 2) {
+					// Get y max value
+					dummy = ld.get(1);
+					yMaxValue = (yMaxValue < dummy ? dummy : yMaxValue);
+					yMinValue = (yMinValue > dummy ? dummy : yMinValue);
+				}
+			}
 		}
 
-		// To be continued...
+		// Give a 0.1 ratio margin (to not overfit the data) to both min and max values
+		Double xIntervalAdjust = ((xMaxValue - xMinValue) * 1.0/10.0);
 
-	}
-
-	/**
-	* Should be deleted, only for tests.
-	*/
-	public static void main(String[] args) {
+		// Adjust the limits of the plotting based on the found values, with the visual correction
+		// calculated above
+		GeneralPlot.setXLimits(xMinValue - xIntervalAdjust, xMaxValue + xIntervalAdjust);
 		
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				GeneralPlot.setAxis();
-				GeneralPlot.setTitle("TestGraphic");
-				GeneralPlot.setXLimits(-10.0, 300.0);
-				GeneralPlot.setYLimits(-50.0, 200.0);
-				GeneralPlot.setXAxisLabel("X-label");
-				GeneralPlot.setYAxisLabel("Y-label");
-				
-				// Can't instantiate anymore, because now its abstract
-				// GeneralPlot testPlot = new GeneralPlot();
-			}
-		});
+		// The same with the y-axis, if needed (i.e, not a unidimensional plot)
+		if (colnum != 1 && rownum != 1) {
+			// It's a bidimensional plot.
+			Double yIntervalAdjust = ((yMaxValue - yMinValue) * 1.0/10.0);
+			GeneralPlot.setYLimits(yMinValue - yIntervalAdjust, yMaxValue + yIntervalAdjust);
+		} else {
+			// It's a unidimensional plot, set y-limits to the same value.
+			// On the plot, they must not be displayed.
+			GeneralPlot.setYLimits(0.0, 0.0);
+		}
 	}
 } 
