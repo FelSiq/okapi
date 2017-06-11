@@ -2,12 +2,12 @@ package plotsOkapiPack;
 // -----------------------------------------
 // IMPORT SECTION
 // 1. Swing 
-import javax.swing.JFrame;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.UIManager;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 // 2. Events
 import java.awt.event.ActionListener;
