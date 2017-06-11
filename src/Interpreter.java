@@ -99,7 +99,7 @@ public class Interpreter {
 	private TreeMap<String, List<List<Double>>> createdTables;
 
 	// These variables holds the regex compiled pattern, used to process user input
-	private Pattern 
+	private static Pattern 
 		negatedArithmeticRegexPattern,
 		checkInputRedundancyPattern,
 		parameterParsingPattern,
@@ -157,10 +157,117 @@ public class Interpreter {
 	}
 
 	/**
-	*
+	* This class will hold up all Interpreter methods which ones can not be called directly from user command line
 	*/
 	private static abstract class InterpreterAuxiliaryMethods {
+		/**
+		* Removes every symbol that is not a blank space, letter, dot (.) or number on the given string, and
+		* set all letters to its lower case form.
+		* @Return New processed String.
+		*/
+		private static String toCanonical(String unprocessedUserInput) {
+			return unprocessedUserInput.toLowerCase().replaceAll("[^" + Interpreter.PERMITED_CHARACTERS + "\\s]", "").replaceAll("\\s+", " ");
+		}
 
+		/**
+		* Process all regexes parameters.
+		* @Throws No exceptions.
+		*/
+		private static void processParameters(String userInput) {
+			// Set up user parameter matching
+			Matcher userCommandArgs = Interpreter.parameterParsingPattern.matcher(userInput);
+
+			// Used to give user a warning
+			Boolean invalidationFlag;
+
+			// Clear all set on the previous command 
+			Interpreter.PARAM_KEEPER.clearParameters();
+			
+			// Set all given arguments, if possible
+			try {
+				while (userCommandArgs.find()) {
+					// Set validation flag to true
+					invalidationFlag = true;
+
+					// Search the correspondent field of the given parameter
+					for (Field f : Interpreter.PARAM_FIELD_NAMES) {
+						if (f.getName().equals(userCommandArgs.group(1))) {
+							// Set correspondent field to the given value
+							f.set(Interpreter.PARAM_KEEPER, userCommandArgs.group(2));
+
+							// Set invalidation flag to false 
+							invalidationFlag = false;
+
+							// Found. Ends the loop.
+							break;
+						}
+					}
+
+					// If invalidationFlag is true, then give user a warning (invalid argument)
+					if (invalidationFlag) {
+						System.out.println("Warning: unknown given parameter (" + userCommandArgs.group(1) + ").");
+					}
+				}
+			} catch (Exception e) {
+				System.out.println("E: " + e.getMessage());
+			}
+		}
+
+		/**
+		* Check if wanted method of user input command has the necessary parameters, in order to correct funcionality.
+		* For example, it is obligatory that "magplot" method has the "type" parameter or, otherwise, it does
+		* not work. In this case, this function return false, and an warning was send to the user.
+		* @Return Null, if method dependencies of user input command was fully satisfied. Field name, otherwise.
+		* @Throws No exception.
+		*/
+		private static String checkDependencies(String[] fieldNames) {
+			String notSatisfiedDependency = null;
+			if (fieldNames != null) {
+				try {
+					// Give user a warning, if given parameter does not match any available 
+					// field on the parameter keeper class.
+					Boolean excessiveParameterFlag;
+
+					// For each given parameter name
+					for (String s : fieldNames) {
+						// Set auxiliary flag to true
+						excessiveParameterFlag = true;
+
+						// For each field available on parameter keeper class
+						for (Field f : Interpreter.PARAM_FIELD_NAMES) {
+							// If there's a match, i.e, if we found the wanted paremeter
+							if (f.getName().equals(s)) {
+								// Turn excessive parameter flag off
+								excessiveParameterFlag = false;
+								// If if it was not set on the last given user input command.
+								// In this case, the dependencies was not fully satisfied, and, 
+								//therefore, return field Name.
+								if (f.get(Interpreter.PARAM_KEEPER) == null) {
+									notSatisfiedDependency = (notSatisfiedDependency != null ? notSatisfiedDependency : "") 
+										+ ("\n\t> \"" + s + "\"");
+								}
+
+								// Found method. break loop.
+								break;
+							}
+						}
+
+						// Print a warning, if a unknown parameter was given by user
+						if (excessiveParameterFlag) {
+							System.out.println("Warning: unknown parameter (" + s +").");
+						}
+					}
+				} catch (NullPointerException npe) {
+					System.out.println("E: bad parameter checking dependencies.");
+				} catch (IllegalAccessException iae) {
+					System.out.println("E: bad access while checking dependencies.");
+				}
+			}
+
+			// Return null by default, i.e, method dependencies was fully satisfies by last
+			// user input command.
+			return notSatisfiedDependency;
+		}
 	}
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
@@ -195,25 +302,6 @@ public class Interpreter {
 		} catch (PatternSyntaxException pse) {
 			System.out.println("E: Incorrect regex pattern.");
 		}
-	}
-	//---------------------------------------------
-	//TERTIARY METHODS SECTION (GETTERS/SETTERS)
-	/**
-	* Check if "exit" command was given by user.
-	* @Throws No exceptions.
-	* @Return True if "exit" command was given already. False otherwise.
-	*/
-	public boolean programEnds() {
-		return Interpreter.endOfProgram;
-	}
-
-	/**
-	* Removes every symbol that is not a blank space, letter, dot (.) or number on the given string, and
-	* set all letters to its lower case form.
-	* @Return New processed String.
-	*/
-	private String toCanonical (String unprocessedUserInput) {
-		return unprocessedUserInput.toLowerCase().replaceAll("[^" + Interpreter.PERMITED_CHARACTERS + "\\s]", "").replaceAll("\\s+", " ");
 	}
 
 	//---------------------------------------------
@@ -275,105 +363,6 @@ public class Interpreter {
 		return true;
 	}
 
-	/**
-	* Process all regexes parameters.
-	* @Throws No exceptions.
-	*/
-	private void processParameters(String userInput) {
-		// Set up user parameter matching
-		Matcher userCommandArgs = this.parameterParsingPattern.matcher(userInput);
-
-		// Used to give user a warning
-		Boolean invalidationFlag;
-
-		// Clear all set on the previous command 
-		Interpreter.PARAM_KEEPER.clearParameters();
-		
-		// Set all given arguments, if possible
-		try {
-			while (userCommandArgs.find()) {
-				// Set validation flag to true
-				invalidationFlag = true;
-
-				// Search the correspondent field of the given parameter
-				for (Field f : Interpreter.PARAM_FIELD_NAMES) {
-					if (f.getName().equals(userCommandArgs.group(1))) {
-						// Set correspondent field to the given value
-						f.set(Interpreter.PARAM_KEEPER, userCommandArgs.group(2));
-
-						// Set invalidation flag to false 
-						invalidationFlag = false;
-
-						// Found. Ends the loop.
-						break;
-					}
-				}
-
-				// If invalidationFlag is true, then give user a warning (invalid argument)
-				if (invalidationFlag) {
-					System.out.println("Warning: unknown given parameter (" + userCommandArgs.group(1) + ").");
-				}
-			}
-		} catch (Exception e) {
-			System.out.println("E: " + e.getMessage());
-		}
-	}
-
-	/**
-	* Check if wanted method of user input command has the necessary parameters, in order to correct funcionality.
-	* For example, it is obligatory that "magplot" method has the "type" parameter or, otherwise, it does
-	* not work. In this case, this function return false, and an warning was send to the user.
-	* @Return Null, if method dependencies of user input command was fully satisfied. Field name, otherwise.
-	* @Throws No exception.
-	*/
-	private String checkDependencies(String[] fieldNames) {
-		String notSatisfiedDependency = null;
-		if (fieldNames != null) {
-			try {
-				// Give user a warning, if given parameter does not match any available 
-				// field on the parameter keeper class.
-				Boolean excessiveParameterFlag;
-
-				// For each given parameter name
-				for (String s : fieldNames) {
-					// Set auxiliary flag to true
-					excessiveParameterFlag = true;
-
-					// For each field available on parameter keeper class
-					for (Field f : Interpreter.PARAM_FIELD_NAMES) {
-						// If there's a match, i.e, if we found the wanted paremeter
-						if (f.getName().equals(s)) {
-							// Turn excessive parameter flag off
-							excessiveParameterFlag = false;
-							// If if it was not set on the last given user input command.
-							// In this case, the dependencies was not fully satisfied, and, 
-							//therefore, return field Name.
-							if (f.get(Interpreter.PARAM_KEEPER) == null) {
-								notSatisfiedDependency = (notSatisfiedDependency != null ? notSatisfiedDependency : "") 
-									+ ("\n\t> \"" + s + "\"");
-							}
-
-							// Found method. break loop.
-							break;
-						}
-					}
-
-					// Print a warning, if a unknown parameter was given by user
-					if (excessiveParameterFlag) {
-						System.out.println("Warning: unknown parameter (" + s +").");
-					}
-				}
-			} catch (NullPointerException npe) {
-				System.out.println("E: bad parameter checking dependencies.");
-			} catch (IllegalAccessException iae) {
-				System.out.println("E: bad access while checking dependencies.");
-			}
-		}
-
-		// Return null by default, i.e, method dependencies was fully satisfies by last
-		// user input command.
-		return notSatisfiedDependency;
-	}
 
 	/**
 	* Main function for plotting.
@@ -384,7 +373,7 @@ public class Interpreter {
 		// This is the main plot method call. 
 		try {
 			// Check if this method paremeter dependencies was satisfied.
-			String notSatisfiedDependency = this.checkDependencies(Interpreter.PLOT_OP_DEPENDENCIES);
+			String notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.PLOT_OP_DEPENDENCIES);
 			if (notSatisfiedDependency != null) {
 				System.out.println("Warning: function parameters not fully satisfied, missing:" + 
 					notSatisfiedDependency);
@@ -468,7 +457,7 @@ public class Interpreter {
 	private Boolean table() {
 		try {
 			// Check if this method paremeter dependencies was satisfied.
-			String notSatisfiedDependency = this.checkDependencies(Interpreter.TABLE_OP_DEPENDENCIES);
+			String notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_DEPENDENCIES);
 			if (notSatisfiedDependency != null) {
 				System.out.println("Warning: function parameters not fully satisfied, missing:" 
 					+ notSatisfiedDependency);
@@ -480,7 +469,7 @@ public class Interpreter {
 			Method correctMethod = null;
 			for (Method k : TableManager.class.getDeclaredMethods()) {
 				// Search for the correct method to be invoked
-				if (toCanonical(k.getName()).equals(Interpreter.PARAM_KEEPER.operation)) {
+				if (Interpreter.InterpreterAuxiliaryMethods.toCanonical(k.getName()).equals(Interpreter.PARAM_KEEPER.operation)) {
 					// Found correct method.
 					correctMethod = k;
 					// Don't need to search anymore, break loop.
@@ -501,8 +490,8 @@ public class Interpreter {
 				sourceFile = new File(Interpreter.PARAM_KEEPER.file);
 
 			// If operation is "create", then this is a special case.
-			if (toCanonical(correctMethod.getName()).equals("create")) {
-				String notSatisfiedSubdependency = this.checkDependencies(Interpreter.TABLE_OP_SUBDEPENDENCIES);
+			if (Interpreter.InterpreterAuxiliaryMethods.toCanonical(correctMethod.getName()).equals("create")) {
+				String notSatisfiedSubdependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_SUBDEPENDENCIES);
 				if (notSatisfiedSubdependency != null) {
 					System.out.println("Warning: function parameters not fully satisfied, missing:"	
 						+ notSatisfiedSubdependency);
@@ -579,7 +568,7 @@ public class Interpreter {
 	private Boolean matrix() {
 		try {
 			// Check if this method paremeter dependencies was satisfied.
-			String notSatisfiedDependency = this.checkDependencies(Interpreter.MATRIX_OP_DEPENDENCIES);
+			String notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.MATRIX_OP_DEPENDENCIES);
 			if (notSatisfiedDependency != null) {
 				System.out.println("Warning: function parameters not fully satisfied, missing:" + 
 					notSatisfiedDependency);
@@ -592,7 +581,7 @@ public class Interpreter {
 			Method correctMethod = null;
 			for (Method k : TableManager.class.getDeclaredMethods()) {
 				// Search for the correct method to be invoked
-				if (toCanonical(k.getName()).equals(Interpreter.PARAM_KEEPER.operation)) {
+				if (Interpreter.InterpreterAuxiliaryMethods.toCanonical(k.getName()).equals(Interpreter.PARAM_KEEPER.operation)) {
 					// Found correct method.
 					correctMethod = k;
 					// Don't need to search anymore, break loop.
@@ -686,7 +675,7 @@ public class Interpreter {
 				//It is not a arithmetic expression.
 
 				// Then transform the given command to a canonical form
-				userInput = toCanonical(userInput);
+				userInput = Interpreter.InterpreterAuxiliaryMethods.toCanonical(userInput);
 
 				// Now, check user's next input line and
 				// get the result of the default regex match, if any.
@@ -713,7 +702,7 @@ public class Interpreter {
 
 					// Preprocess user given parameters, if needed
 					if (regexTextMatched.group(2) != null)
-						this.processParameters(userInput);
+						Interpreter.InterpreterAuxiliaryMethods.processParameters(userInput);
 
 					// Try to call the identified method, if any, and return true if success.
 					return (Boolean) methodToBeCalled.invoke(this);
@@ -739,6 +728,15 @@ public class Interpreter {
 		//Return false, by default, if no regex match happens.
 		return false;
 	} 
+
+	/**
+	* Check if "exit" command was given by user.
+	* @Throws No exceptions.
+	* @Return True if "exit" command was given already. False otherwise.
+	*/
+	public boolean programEnds() {
+		return Interpreter.endOfProgram;
+	}
 
 	/**
 	* For test purpose. Should not exists on final version.
