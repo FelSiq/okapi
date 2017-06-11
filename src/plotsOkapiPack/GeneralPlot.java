@@ -42,7 +42,8 @@ public abstract class GeneralPlot {
 	// Main color scheme of the okapi project
 	public static final Color OKAPI_COLOR = new Color(0xAD, 0xD7, 0xC4);
 
-	// 
+	// This "magic numer" is a safe way of capiring two floating points.
+	// if |FloatP1 - FloatP2| < FLOAT_EQUIVALENCE, then they're the same number.
 	public static final Double FLOAT_EQUIVALENCE = 0.0001;
 
 	// -------------------------------------------------
