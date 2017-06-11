@@ -21,6 +21,12 @@ public class PlotBox extends GeneralPlot {
 	public static void setupPlotBox() {
 		// Set up stuff related to PlotBox, if needed.
 		GeneralPlot.setAxis(true);
+
+		// 
+		GeneralPlot.setYLimits(0.0, 0.0);
+
+		// 
+		GeneralPlot.setXAxisOffset(175);
 	}
 
 	/**

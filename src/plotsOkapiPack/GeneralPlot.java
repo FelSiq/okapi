@@ -42,6 +42,9 @@ public abstract class GeneralPlot {
 	// Main color scheme of the okapi project
 	public static final Color OKAPI_COLOR = new Color(0xAD, 0xD7, 0xC4);
 
+	// 
+	public static final Double FLOAT_EQUIVALENCE = 0.0001;
+
 	// -------------------------------------------------
 	// VARIABLE SECTION
 	// Controls the display of the plot axis
@@ -498,7 +501,7 @@ public abstract class GeneralPlot {
 	* Set the value off x-axis offset on the plot (setter). Final user should
 	* not hande this manually, generalPlot adjust this automatically instead.
 	*/
-	private static void setXAxisOffset(int newXOffsetValue) {
+	protected static void setXAxisOffset(int newXOffsetValue) {
 		GeneralPlot.plot_axis_xoffset = newXOffsetValue;
 	}
 
@@ -506,7 +509,7 @@ public abstract class GeneralPlot {
 	* Set the value off y-axis offset on the plot (setter). Final user should
 	* not hande this manually, generalPlot adjust this automatically instead.
 	*/
-	private static void setYAxisOffset(int newYOffsetValue) {
+	protected static void setYAxisOffset(int newYOffsetValue) {
 		GeneralPlot.plot_axis_yoffset = newYOffsetValue;
 	}
 
@@ -539,8 +542,13 @@ public abstract class GeneralPlot {
 		GeneralPlot.plot_xlim_max = xMax;
 
 		// Automatically adjust y-axis offset, to match x = 0.
-		GeneralPlot.setYAxisOffset(((Double) (MakeAxis.X_AXIS_X1 + ((MakeAxis.X_AXIS_X2 - MakeAxis.X_AXIS_X1) * 
-				((GeneralPlot.plot_xlim_min) / (Double) (GeneralPlot.plot_xlim_min - GeneralPlot.plot_xlim_max))))).intValue());
+		if (Math.abs(xMin - xMax) > GeneralPlot.FLOAT_EQUIVALENCE) {
+			GeneralPlot.setYAxisOffset(((Double) (MakeAxis.X_AXIS_X1 + ((MakeAxis.X_AXIS_X2 - MakeAxis.X_AXIS_X1) * 
+					((GeneralPlot.plot_xlim_min) / (Double) (GeneralPlot.plot_xlim_min - GeneralPlot.plot_xlim_max))))).intValue());
+		} else {
+			// Set the y-axis next to half the screen
+			GeneralPlot.setYAxisOffset(MakeAxis.X_AXIS_X1 + (MakeAxis.X_AXIS_X2 - MakeAxis.X_AXIS_X1)/2);
+		}
 	}
 
 	/**
@@ -558,8 +566,13 @@ public abstract class GeneralPlot {
 		GeneralPlot.plot_ylim_max = yMax;
 
 		// Automatically adjust y-axis offset, to match y = 0.
-		GeneralPlot.setXAxisOffset(((Double) (MakeAxis.Y_AXIS_Y2 + ((MakeAxis.Y_AXIS_Y1 - MakeAxis.Y_AXIS_Y2) * 
-				((GeneralPlot.plot_ylim_min) / (Double) (GeneralPlot.plot_ylim_min - GeneralPlot.plot_ylim_max))))).intValue());
+		if (Math.abs(yMin - yMax) > GeneralPlot.FLOAT_EQUIVALENCE) {
+			GeneralPlot.setXAxisOffset(((Double) (MakeAxis.Y_AXIS_Y2 + ((MakeAxis.Y_AXIS_Y1 - MakeAxis.Y_AXIS_Y2) * 
+					((GeneralPlot.plot_ylim_min) / (Double) (GeneralPlot.plot_ylim_min - GeneralPlot.plot_ylim_max))))).intValue());
+		} else {
+			// Set the y-axis next to half the screen
+			GeneralPlot.setXAxisOffset(MakeAxis.Y_AXIS_Y2 + (MakeAxis.Y_AXIS_Y1 - MakeAxis.Y_AXIS_Y2)/2);
+		}
 	}
 
 	/**
