@@ -43,9 +43,10 @@ public class Interpreter {
 		//		-> Subdependencie: If determined condition meet, that parameter turns obligatory
 		//		-> unlabeled: always optional
 		// Plot operation
+		protected String table; //Obligatory
 		protected String type; //Obligatory
 		protected String color;
-		protected String table;
+		protected String title;
 
 		// Matrix operation
 		protected String a; // Obligatory - Fst operand of the matrix operation

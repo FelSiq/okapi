@@ -5,6 +5,7 @@ package plotsOkapiPack;
 import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -15,6 +16,8 @@ import java.awt.event.KeyEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Toolkit;
+import java.awt.Font;
 
 // 3. Aesthetics stuff
 import java.awt.Color;
@@ -26,7 +29,7 @@ import javax.swing.SwingUtilities;
 /**
 * This class should handle all common stuff between all plot types.
 */
-public class GeneralPlot {
+public abstract class GeneralPlot {
 	// -------------------------------------------------
 	// CONSTANTS SECTION
 	// Title displayed on the plotting window
@@ -66,6 +69,9 @@ public class GeneralPlot {
 
 	// Number of intervals between min and max on the y-axis
 	private static int plot_yinterval_num = 10;
+
+	// Main title of the plot
+	private static String plot_title = null;
 
 	// -------------------------------------------------
 	// INNER CLASS SECTION
@@ -326,10 +332,36 @@ public class GeneralPlot {
 	}
 
 	/**
-	* Instantiates a new JPanel.
-	* @Return A brand-new Jpanel.
+	* Set up user's title to the current graphic, if any.
 	*/
-	private JPanel createPanel(JButton... panelButtons) {
+	private void addGraphicTitle(JFrame myFrame) {
+		// If user specified a title to the graphic...
+		if (GeneralPlot.plot_title != null) {
+			// Create a new font to the Graphic
+			Font graphicTitleFont = new Font("Arial", Font.PLAIN, 20);
+
+			// Create the title container itself
+			JLabel graphicTitle = new JLabel(GeneralPlot.plot_title);
+			
+			// Set the font created previously to the title container
+			graphicTitle.setFont(graphicTitleFont);
+
+			// Create a title Panel, in order to keep graphic title centralized
+			JPanel titlePanel = new JPanel();
+
+			// Add the title to the brand-new title panel
+			titlePanel.add(graphicTitle);
+
+			// Add the Title Panel to the top of the given JFrame
+			myFrame.add(titlePanel, BorderLayout.PAGE_START);
+		}
+	}
+
+	/**
+	* Instantiates a new main JPanel.
+	* @Return A brand-new main Jpanel.
+	*/
+	private JPanel createPanel() {
 		// Creates new panel
 		JPanel newPanel = new JPanel();
 
@@ -342,34 +374,44 @@ public class GeneralPlot {
 				GeneralPlot.plot_axis_xoffset, 
 				GeneralPlot.plot_axis_yoffset) 
 			: new GeneralPlot.BackgroundRectangle());
-		
-		// Add buttons to the new Panel
-		for (JButton n : panelButtons)
-			newPanel.add(n);
 
 		// Return brand-new panel
 		return newPanel;
 	}
 
 	/**
+	* Set given frame to a centered position in the monitor
+	*/
+	private void setFrameCentered(JFrame myFrame) {
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		myFrame.setLocation(dim.width/2-myFrame.getSize().width/2, dim.height/2-myFrame.getSize().height/2);
+	}
+
+	/**
 	* Creates a new frame with the given name and panel.
 	* @return New visible frame with given specifications. 
 	*/
-	private JFrame createFrame(String frameName, JPanel myPanel) {
+	private JFrame createFrame(String frameName, JPanel mainPanel, JPanel buttonPanel) {
 		// Creates new main frame
 		JFrame newFrame = new JFrame(frameName);
 
 		// Set previously made panel to the frame
-		newFrame.add(myPanel);
+		newFrame.add(mainPanel, BorderLayout.CENTER);
+
+		// Add button Panel to the bottom of the frame
+		newFrame.add(buttonPanel, BorderLayout.SOUTH);
 
 		// Set default action on pressing the close button
 		newFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		// Set visible
-		newFrame.setVisible(true);
+		// Add graphic title to Frame, if any
+		addGraphicTitle(newFrame);
 
 		// Adjust the window
 		newFrame.pack();
+
+		// Set this frame to the center of the monitor 
+		setFrameCentered(newFrame);
 
 		// Change interface L&F to system L&F (Metal by default)
 		try {
@@ -381,7 +423,20 @@ public class GeneralPlot {
 			System.out.println(e.getMessage());
 		}
 
+		// Set visible
+		newFrame.setVisible(true);
+
 		return newFrame;
+	}
+
+	/**
+	* Create a Panel button only
+	*/
+	private JPanel createButtonsPanel(JButton... buttons) {
+		JPanel newButtonPanel = new JPanel();
+		for (JButton jb : buttons)
+			newButtonPanel.add(jb);
+		return newButtonPanel;
 	}
 
 	/**
@@ -389,14 +444,32 @@ public class GeneralPlot {
 	*/
 	private GeneralPlot() {
 		// Instantiate auxiliary buttons
-		JButton bPrint = createButton("Print", KeyEvent.VK_P);
+		// Save button (create a output file with the given graphic)
+		JButton bSave = createButton("Save", KeyEvent.VK_P);
+		bSave.addActionListener(new ActionListener () {
+			public void actionPerformed(ActionEvent e) {
+				// To be continued..
+			}
+		});
+
+		// Close the plot window
 		JButton bClose = createButton("Close", KeyEvent.VK_C);
 
 		// Creates the panel
-		JPanel mainPanel = createPanel(bPrint, bClose);
+		JPanel mainPanel = createPanel();
 
-		// Creates frame
-		JFrame myFrame = createFrame(GeneralPlot.PLOT_WINDOW_TITLE, mainPanel);
+		// Create a button-only panel
+		JPanel buttonsPanel = createButtonsPanel(bSave, bClose);
+
+		// Create frame
+		JFrame myFrame = createFrame(GeneralPlot.PLOT_WINDOW_TITLE, mainPanel, buttonsPanel);
+
+		// Add funcionality on the Close button
+		bClose.addActionListener(new ActionListener () {
+			public void actionPerformed(ActionEvent e) {
+				myFrame.dispose();
+			}
+		});
 	}
 
 	/**
@@ -477,6 +550,20 @@ public class GeneralPlot {
 	}
 
 	/**
+	* Set the plot main title (setter)
+	*/
+	public static void setTitle(String newTitle) {
+		GeneralPlot.plot_title = newTitle;
+	}
+
+	/**
+	* Get the plot main title (getter)
+	*/
+	public static String getTitle() {
+		return GeneralPlot.plot_title;
+	}
+
+	/**
 	* Should be deleted, only for tests.
 	*/
 	public static void main(String[] args) {
@@ -484,11 +571,14 @@ public class GeneralPlot {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				GeneralPlot.setAxis();
-				GeneralPlot.setXLimits(-1640.0, 320.0, 12);
-				GeneralPlot.setYLimits(-1640.0, 320.0, 8);
+				GeneralPlot.setTitle("TestGraphic");
+				GeneralPlot.setXLimits(-20.0, 1220.0, 15);
+				GeneralPlot.setYLimits(-20.0, 620.0, 10);
 				GeneralPlot.setXAxisLabel("X-label");
 				GeneralPlot.setYAxisLabel("Y-label");
-				GeneralPlot testPlot = new GeneralPlot();
+				
+				// Can't instantiate anymore, because now its abstract
+				// GeneralPlot testPlot = new GeneralPlot();
 			}
 		});
 	}
