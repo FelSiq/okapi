@@ -22,6 +22,10 @@ import java.awt.Font;
 // 3. Aesthetics stuff
 import java.awt.Color;
 
+// 4. Collections
+import java.util.Collections;
+import java.util.List;
+
 // To be deleted.
 import javax.swing.SwingUtilities;
 // -----------------------------------------
@@ -68,10 +72,10 @@ public abstract class GeneralPlot {
 	private static Double plot_ylim_min = 0.0;
 
 	// Number of intervals between min and max on the x-axis
-	private static int plot_xinterval_num = 10;
+	private static int plot_xinterval_num = 4;
 
 	// Number of intervals between min and max on the y-axis
-	private static int plot_yinterval_num = 10;
+	private static int plot_yinterval_num = 4;
 
 	// Main title of the plot
 	private static String plot_title = null;
@@ -512,28 +516,26 @@ public abstract class GeneralPlot {
 	* Set the value off x-axis label on the plot (setter)
 	*/
 	public static void setXAxisLabel(String newXLabel) {
-		GeneralPlot.plot_axis_xlabel = newXLabel;
+		GeneralPlot.plot_axis_xlabel = (newXLabel != null ? newXLabel : "x");
 	}
 
 	/**
 	* Set the value off y-axis label on the plot (setter)
 	*/
 	public static void setYAxisLabel(String newYLabel) {
-		GeneralPlot.plot_axis_ylabel = newYLabel;
+		GeneralPlot.plot_axis_ylabel = (newYLabel != null ? newYLabel : "y");
 	}
 
 	/**
 	* Set the interval of x-axis and the number of subintervals between each x-axis value print.
+	* @Throws IllegalArgumentException, if minValue >= maxValue.
 	*/
-	public static void setXLimits(Double xMin, Double xMax, int xIntervalNumber) throws IllegalArgumentException {
+	public static void setXLimits(Double xMin, Double xMax) throws IllegalArgumentException {
 		// Check if parameters are mathematically possible
-		if (xIntervalNumber <= 0)
-			throw new IllegalArgumentException("E: Interval number must be strictly positive.");
 		if (xMin >= xMax)
 			throw new IllegalArgumentException("E: min-x value must be strictly smaller than max-x.");
 
 		// Set up new values for variables
-		GeneralPlot.plot_xinterval_num = xIntervalNumber;
 		GeneralPlot.plot_xlim_min = xMin;
 		GeneralPlot.plot_xlim_max = xMax;
 
@@ -544,22 +546,94 @@ public abstract class GeneralPlot {
 
 	/**
 	* Set the interval of y-axis and the number of subintervals between each y-axis value print.
+	* @Throws IllegalArgumentException, if minValue >= maxValue.
 	*/
-	public static void setYLimits(Double yMin, Double yMax, int yIntervalNumber) throws IllegalArgumentException {
+	public static void setYLimits(Double yMin, Double yMax) throws IllegalArgumentException {
 		// Check if parameters are mathematically possible
-		if (yIntervalNumber <= 0)
-			throw new IllegalArgumentException("E: Interval number must be strictly positive.");
 		if (yMin >= yMax)
 			throw new IllegalArgumentException("E: min-y value must be strictly smaller than max-y.");
 
 		// Set up new values for variables
-		GeneralPlot.plot_yinterval_num = yIntervalNumber;
 		GeneralPlot.plot_ylim_min = yMin;
 		GeneralPlot.plot_ylim_max = yMax;
 
 		// Automatically adjust y-axis offset, to match y = 0.
 		GeneralPlot.setXAxisOffset(((Double) (MakeAxis.Y_AXIS_Y2 + ((MakeAxis.Y_AXIS_Y1 - MakeAxis.Y_AXIS_Y2) * 
 				((GeneralPlot.plot_ylim_min) / (Double) (GeneralPlot.plot_ylim_min - GeneralPlot.plot_ylim_max))))).intValue());
+	}
+
+	/**
+	* Set up number of plotting intervals on thhe x-axis. (4 by default)
+	* @Throws IllegalArgumentException, if interval number is not strictly positive
+	*/
+	public static void setXInterval(int xIntervalNumber) throws IllegalArgumentException {
+		// Check if parameters are mathematically possible
+		if (xIntervalNumber <= 0)
+			throw new IllegalArgumentException("E: Interval number must be strictly positive.");
+
+		// Set up new values for variables
+		GeneralPlot.plot_xinterval_num = xIntervalNumber;
+	}
+
+	/**
+	* Set up number of plotting intervals on thhe y-axis. (4 by default)
+	* @Throws IllegalArgumentException, if interval number is not strictly positive
+	*/
+	public static void setYInterval(int yIntervalNumber) throws IllegalArgumentException {
+		// Check if parameters are mathematically possible
+		if (yIntervalNumber <= 0)
+			throw new IllegalArgumentException("E: Interval number must be strictly positive.");
+
+		// Set up new values for variables
+		GeneralPlot.plot_yinterval_num = yIntervalNumber;
+	}
+
+	/**
+	* (Getter)  Returns y-axis number of plotting intervals. 
+	* @Throws No exception. 
+	*/
+	public static int getYInterval() {
+		return GeneralPlot.plot_yinterval_num;
+	}
+
+	/**
+	* (Getter) Returns x-axis number of plotting intervals.
+	* @Throws No exception. 
+	*/
+	public static int getXInterval() {
+		return GeneralPlot.plot_xinterval_num;
+	}
+
+	/**
+	* (Getter) Returns y-axis min plotting limit. 
+	* @Throws No exception. 
+	*/
+	public static Double getYLimMin() {
+		return GeneralPlot.plot_ylim_min;
+	}
+
+	/**
+	* (Getter) Returns y-axis max plotting limit. 
+	* @Throws No exception. 
+	*/
+	public static Double getYLimMax() {
+		return GeneralPlot.plot_ylim_max;
+	}
+
+	/**
+	* (Getter) Returns x-axis min plotting limit.
+	* @Throws No exception. 
+	*/
+	public static Double getXLimMin() {
+		return GeneralPlot.plot_xlim_min;
+	}
+
+	/**
+	* (Getter) Returns x-axis max plotting limit. 
+	* @Throws No exception. 
+	*/
+	public static Double getXLimMax() {
+		return GeneralPlot.plot_xlim_max;
 	}
 
 	/**
@@ -577,6 +651,33 @@ public abstract class GeneralPlot {
 	}
 
 	/**
+	* Automatically adjust plot visual parameters to the given table.
+	* @Throws NullPointerException, if given table does not have any valid element.
+	*/
+	public static void adjustParametersToTable(List<List<Double>> sourceTable) throws NullPointerException {
+		// Verify if given table is a valid plotting table
+		if (sourceTable == null || sourceTable.size() == 0 || 
+			sourceTable.get(0) == null || sourceTable.get(0).size() == 0)
+			throw new NullPointerException("E: invalid table to adjust plot dimensions.");
+
+		// Auxiliary variables, to set x-axis and y-axis limits adequately.
+		Double maxValue = Double.MIN_VALUE, minValue = Double.MAX_VALUE, dummy;
+
+		// Get min-max values to the given table
+		for (List<Double> ld : sourceTable) {
+			// Get max value of the current list and compare to the global max value
+			dummy = Collections.max(ld);
+			maxValue = (maxValue < dummy ? dummy : maxValue);
+			// Get min value of the current list and compare to the global min value
+			dummy = Collections.min(ld);
+			minValue = (minValue > dummy ? dummy : minValue);
+		}
+
+		// To be continued...
+
+	}
+
+	/**
 	* Should be deleted, only for tests.
 	*/
 	public static void main(String[] args) {
@@ -585,8 +686,8 @@ public abstract class GeneralPlot {
 			public void run() {
 				GeneralPlot.setAxis();
 				GeneralPlot.setTitle("TestGraphic");
-				GeneralPlot.setXLimits(-10.0, 300.0, 10);
-				GeneralPlot.setYLimits(-50.0, 200.0, 10);
+				GeneralPlot.setXLimits(-10.0, 300.0);
+				GeneralPlot.setYLimits(-50.0, 200.0);
 				GeneralPlot.setXAxisLabel("X-label");
 				GeneralPlot.setYAxisLabel("Y-label");
 				

@@ -8,6 +8,8 @@ import java.util.Scanner;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.Collections;
+import java.util.Set;
 import java.io.File;
 
 // 1. For regex (interpreting the user input)
@@ -35,49 +37,6 @@ import javax.swing.SwingWorker;
 
 public class Interpreter {
 	//---------------------------------------------
-	// IINER CLASS SECTION
-	// Inner class, which hold up all Interpreter parameters
-	private static class InterpreterParameters {
-		//---------------------------------------------
-		// Interpreter parameters set
-		// Label legend:
-		// 		-> Obligatory: every suboperation from this command need that parameter
-		//		-> Subdependencie: If determined condition meet, that parameter turns obligatory
-		//		-> unlabeled: always optional
-		// Plot operation
-		protected String 
-			table, //Obligatory
-			type, //Obligatory
-			color,
-			title,
-
-		// Matrix operation
-			a, // Obligatory - Fst operand of the matrix operation
-			b, // Obligatory - Snd operand of the matrix operation
-			r, // Name of the table created to hold resultand matrix 
-
-		// Table and/or matrix operations
-			operation, //Obligatory for both table and matrix
-			name, //Obligatory for table
-			file, // Input file for the table or output file for the resultant matrix.
-			index, 
-			rownum, //Subdependencie: operation=init
-			colnum; //Subdependencie: operation=init
-		//---------------------------------------------
-
-		/**
-		* Clear all fields (set to null) of this class
-		*/
-		public void clearParameters() {
-			try {
-				for (Field k : InterpreterParameters.class.getDeclaredFields())
-					k.set(this, null);
-			} catch (IllegalAccessException iae) {
-				System.out.println(iae.getMessage());
-			}
-		}
-	}
-	//---------------------------------------------
 	// CONSTANT SECTION
 	// Standard user input getter
 	private static final Scanner MAIN_INPUT_SCANNER = new Scanner(System.in);
@@ -88,20 +47,23 @@ public class Interpreter {
 	// Tell how many commands are available, on this program version, to recognition
 	private static final int COMMAND_NUMBER = (Interpreter.INTERPRETER_METHODS.length - 1);
 	
+	// Permited characters inside a non-arithmetic command (both for parameters and commands)
+	private static final String PERMITED_CHARACTERS = "-+_\\.,;=\\w\\{\\}\\(\\)\\[\\]";
+
 	// Possible suported ways of parameter atributtion. Get flexible!
 	private static final String PARAM_ATTRIBUTION = "(?:=+|is|equals?)";
 
 	// This is the default regex to match user input
-	private static final String DEFAULT_REGEX_STRING = "\\b([\\w.]+)(?:\\s+([\\w.]+)\\s*" + PARAM_ATTRIBUTION + "\\s*([\\w.]+))*\\s*\\b";
+	private static final String DEFAULT_REGEX_STRING = "\\b([" + PERMITED_CHARACTERS + "]+)(?:\\s+([" + PERMITED_CHARACTERS + "]+)\\s*" + PARAM_ATTRIBUTION + "\\s*([" + PERMITED_CHARACTERS + "]+))*\\s*\\b";
 
 	// Regex used to parameter parsing
-	private static final String PARAM_PARSING_STR = "\\b([\\w.]+)\\s*" + PARAM_ATTRIBUTION + "\\s*([\\w.]+)\\b";
+	private static final String PARAM_PARSING_STR = "([" + PERMITED_CHARACTERS + "]+)\\s*" + PARAM_ATTRIBUTION + "\\s*([" + PERMITED_CHARACTERS + "]+)";
 
 	// If this regex matches, then the given command is not a arithmetic expression
-	private static final String NEGATED_ARITHMETIC_REGEX_STR = "[^-+*/^()0-9\\s.]+";
+	private static final String NEGATED_ARITHMETIC_REGEX_STR = "[^-+*/^()0-9\\s.,]+";
 
 	// Checks if there is at least on redefinition of a string parameter from a user input
-	private static final String CHECK_INPUT_REDUNDANCY_STR = "\\b([\\w.]+)\\s*" + PARAM_ATTRIBUTION + ".+(?:\\1)(?=\\s*" + PARAM_ATTRIBUTION + ")\\b";
+	private static final String CHECK_INPUT_REDUNDANCY_STR = "\\b([" + PERMITED_CHARACTERS + "]+)\\s*" + PARAM_ATTRIBUTION + ".+(?:\\1)(?=\\s*" + PARAM_ATTRIBUTION + ")\\b";
 
 	// Instantiation of arithmetic expression solver
 	private static final Arithmetic ARITHMETIC_SOLVER = new Arithmetic();
@@ -124,21 +86,82 @@ public class Interpreter {
 	// Dependencies (requested parameters) of "plot" command
 	private static final String[] PLOT_OP_DEPENDENCIES = {"type", "table"};
 
+	// Get obtain plotting limits 
+	private static final String PLOT_REGEX_LIMITS = "[\\(\\[{]\\s*([+-]?\\s*(?:\\d+[,.]?|\\d*[,.]\\d+))\\s*[,;:]\\s*([+-]?\\s*(?:\\d+[,.]?|\\d*[,.]\\d+))\\s*[\\)\\]}]";  
+
 	//---------------------------------------------
 	//VARIABLE SECTION
 
 	// Tell if exit command is or is not been called.
 	private static boolean endOfProgram = false;
 
-	// These variables holds the regex compiled pattern, used to process user input
-	private Pattern negatedArithmeticRegexPattern; 
-	private Pattern checkInputRedundancyPattern; 
-	private Pattern parameterParsingPattern; 
-	private Pattern mainRegexPattern;
-
 	// Colletion of all user created tables
 	private TreeMap<String, List<List<Double>>> createdTables;
 
+	// These variables holds the regex compiled pattern, used to process user input
+	private Pattern 
+		negatedArithmeticRegexPattern,
+		checkInputRedundancyPattern,
+		parameterParsingPattern,
+		mainRegexPattern,
+		plottingLimitsPattern;
+
+	//---------------------------------------------
+	// IINER CLASSES SECTION
+	// Inner class, which hold up all Interpreter parameters
+	private static class InterpreterParameters {
+		//---------------------------------------------
+		// Interpreter parameters set
+		// Label legend:
+		// 		-> Obligatory: every suboperation from this command need that parameter
+		//		-> Subdependencie: If determined condition meet, that parameter turns obligatory
+		//		-> unlabeled: always optional
+		// Plot operation
+		protected String 
+			table, // Obligatory
+			type, // Obligatory
+			color,
+			title,
+			yint, // Number of intervals on the y-axis
+			ylab, // Label of the y-axis
+			ylim, // Numeric limit of the y-axis
+			xint, // Number of intervals on the x-axis
+			xlab, // Label of the x-axis
+			xlim, // Numeric limit of the x-axis
+
+		// Matrix operation
+			a, // Obligatory - Fst operand of the matrix operation
+			b, // Obligatory - Snd operand of the matrix operation
+			r, // Name of the table created to hold resultand matrix 
+
+		// Table and/or matrix operations
+			operation, // Obligatory for both table and matrix
+			name, // Obligatory for table
+			file, // Input file for the table or output file for the resultant matrix.
+			index, 
+			rownum, // Subdependencie: operation=init
+			colnum; // Subdependencie: operation=init
+		//---------------------------------------------
+
+		/**
+		* Clear all fields (set to null) of this class
+		*/
+		public void clearParameters() {
+			try {
+				for (Field k : InterpreterParameters.class.getDeclaredFields())
+					k.set(this, null);
+			} catch (IllegalAccessException iae) {
+				System.out.println(iae.getMessage());
+			}
+		}
+	}
+
+	/**
+	*
+	*/
+	private static abstract class InterpreterAuxiliaryMethods {
+
+	}
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
 	public Interpreter() {
@@ -155,6 +178,9 @@ public class Interpreter {
 
 			// Compile general regex, used to match both main command and its parameters 
 			this.mainRegexPattern = Pattern.compile(Interpreter.DEFAULT_REGEX_STRING);
+
+			// Interpret the given plotting axes limits
+			this.plottingLimitsPattern = Pattern.compile(Interpreter.PLOT_REGEX_LIMITS);
 			
 			// Sort the method list of Interpreter Class, by name, in order to use binary searchs
 			Arrays.sort(INTERPRETER_METHODS, 
@@ -181,13 +207,57 @@ public class Interpreter {
 		return Interpreter.endOfProgram;
 	}
 
+	/**
+	* Removes every symbol that is not a blank space, letter, dot (.) or number on the given string, and
+	* set all letters to its lower case form.
+	* @Return New processed String.
+	*/
+	private String toCanonical (String unprocessedUserInput) {
+		return unprocessedUserInput.toLowerCase().replaceAll("[^" + Interpreter.PERMITED_CHARACTERS + "\\s]", "").replaceAll("\\s+", " ");
+	}
+
 	//---------------------------------------------
 	//SECONDARY METHODS SECTION
 
 	/**
+	* List all available tables on current program section.
+	* @Throws No exceptions.
+	* @Return Always true.
+	*/
+	private Boolean list() {
+		// Get the name of all created tables on this program section, if any
+		Set<String> allTableNames = this.createdTables.keySet();
+
+		// Check if user already create at least one table
+		if (!allTableNames.isEmpty()) {
+			// Aesthetics
+			System.out.println("User created tables:");
+			
+			// Print the name of all available tables
+			for (String tableName : allTableNames) {
+				// Recover the current table
+				List<List<Double>> currentTable = this.createdTables.get(tableName);
+				// Print it's name and its dimensions, if not empty
+				System.out.println("\t> " + tableName + 
+					(
+						currentTable.get(0) != null 
+						?	" [" + currentTable.size() + ", " + currentTable.get(0).size() + "]"
+						:	" (empty)"
+						)
+					);
+			}
+		} else {
+			// No data table found.
+			System.out.println("No data table found. Use \"table operation = create name = mytable\".");
+		}
+
+		return true;
+	}
+
+	/**
 	* Display a default error message, if current command is a invalid one.
 	* @Throws No exceptions.
-	* @Return Always null.
+	* @Return Always false.
 	*/
 	private Boolean callInvalidMethod() {
 		System.out.println("E: this command is invalid!");
@@ -314,26 +384,76 @@ public class Interpreter {
 		// This is the main plot method call. 
 		try {
 			// Check if this method paremeter dependencies was satisfied.
-			String notSatisfiedDependency = this.checkDependencies(Interpreter.TABLE_OP_DEPENDENCIES);
+			String notSatisfiedDependency = this.checkDependencies(Interpreter.PLOT_OP_DEPENDENCIES);
 			if (notSatisfiedDependency != null) {
 				System.out.println("Warning: function parameters not fully satisfied, missing:" + 
 					notSatisfiedDependency);
 				return false;
 			}
 
-			// Obligatory parameters fully satisfied, try to call correct plot
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					//Pegar metodo com o nome "type"
-					//Dar invoke no metodo de nome "type".
-				}
-			});
+			// Set up user plotting parameters
+			// 1. Axes number of intervals
+			if (Interpreter.PARAM_KEEPER.xint != null)
+				GeneralPlot.setXInterval(Integer.parseInt(Interpreter.PARAM_KEEPER.xint)); // x-axis
+			if (Interpreter.PARAM_KEEPER.yint != null)
+				GeneralPlot.setYInterval(Integer.parseInt(Interpreter.PARAM_KEEPER.yint)); // y-axis
 
-			return true;
-		} catch (NullPointerException npe) {
-			System.out.println("E: invalid parameters for plotting.");
-		//} catch (IllegalAccessException iae) {
-		//	System.out.println("E: Invalid plot type.");
+			// 2. Plot main title
+			GeneralPlot.setTitle(Interpreter.PARAM_KEEPER.title);
+
+			// 3. Axes labels
+			GeneralPlot.setXAxisLabel(Interpreter.PARAM_KEEPER.xlab); // x-axis
+			GeneralPlot.setYAxisLabel(Interpreter.PARAM_KEEPER.ylab); // y-axis
+
+			// Get table for plotting
+			List<List<Double>> sourceTable = this.createdTables.get(Interpreter.PARAM_KEEPER.table);
+
+			// Check if given table exists
+			if (sourceTable != null) {
+				// User gave a valid table, proceed.
+
+				// Adjust plotting limits automatically to the given table.
+				GeneralPlot.adjustParametersToTable(sourceTable);
+
+				// User may have a chance to impose it's own plotting limits.
+				// Limits for x-axis
+				if (Interpreter.PARAM_KEEPER.xlim != null) {
+					Matcher plotLims = this.plottingLimitsPattern.matcher(Interpreter.PARAM_KEEPER.xlim.replaceAll("\\s+", " "));
+					if (plotLims.find()) {
+						GeneralPlot.setXLimits(
+							Double.parseDouble(plotLims.group(1)), 
+							Double.parseDouble(plotLims.group(2)));
+					}
+				}
+
+				// Limits for y-axis
+				if (Interpreter.PARAM_KEEPER.ylim != null) {
+					Matcher plotLims = this.plottingLimitsPattern.matcher(Interpreter.PARAM_KEEPER.ylim.replaceAll("\\s+", " "));
+					if (plotLims.find()) {
+						GeneralPlot.setYLimits(
+							Double.parseDouble(plotLims.group(1)), 
+							Double.parseDouble(plotLims.group(2)));
+					}
+				}
+
+				// Obligatory parameters fully satisfied, try to call correct plot
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						//Pegar metodo com o nome "type"
+						//Dar invoke no metodo de nome "type".
+					}
+				});
+
+				return true;
+			} else {
+				// User gave a unknown table. Give a error message and abort plotting.
+				System.out.println(
+					"E: there's no table named \"" + 
+					Interpreter.PARAM_KEEPER.table + 
+					"\". Please \"create\" it first.");
+			}
+		} catch (NullPointerException | IllegalArgumentException /*| IllegalAccessException*/ e) {
+			System.out.println(e.getMessage());
 		}
 
 		//Return false by default
@@ -368,7 +488,10 @@ public class Interpreter {
 				}
 			}
 			if (correctMethod == null) {
-				System.out.println("E: Invalid table operation.");
+				System.out.println(
+					"E: Invalid table operation \"" + 
+					Interpreter.PARAM_KEEPER.operation 
+					+ "\".");
 				return false;
 			}
 
@@ -477,7 +600,10 @@ public class Interpreter {
 				}
 			}
 			if (correctMethod == null) {
-				System.out.println("E: Invalid matrix operation.");
+				System.out.println(
+					"E: Invalid matrix operation \"" + 
+					Interpreter.PARAM_KEEPER.operation + 
+					" \".");
 				return false;
 			}
 
@@ -537,15 +663,6 @@ public class Interpreter {
 		return false;
 	}
 
-	/**
-	* Removes every symbol that is not a blank space, letter, dot (.) or number on the given string, and
-	* set all letters to its lower case form.
-	* @Return New processed String.
-	*/
-	private String toCanonical (String unprocessedUserInput) {
-		return unprocessedUserInput.toLowerCase().replaceAll("[^\\w=\\s.]", "");
-	}
-
 	//---------------------------------------------
 	//PRIMARY METHOD SECTION
 
@@ -594,8 +711,9 @@ public class Interpreter {
 						return false;
 					}
 
-					// Preprocess user given parameters
-					this.processParameters(userInput);
+					// Preprocess user given parameters, if needed
+					if (regexTextMatched.group(2) != null)
+						this.processParameters(userInput);
 
 					// Try to call the identified method, if any, and return true if success.
 					return (Boolean) methodToBeCalled.invoke(this);
