@@ -136,12 +136,12 @@ public abstract class GeneralPlot {
 		// -------------------------------------------------
 		// CONSTANTS SECTION
 		// Default pixel-offset of the axes label
-		private static final int LABEL_OFFSET = 6;
+		private static final int LABEL_OFFSET = 4;
 
 		// Default pixel-offset value of a character
 		private static final int CHAR_PIXELOFFSET = 7;
 
-		private static final int MARK_HALFSIZE = 3;
+		private static final int MARK_HALFSIZE = 4;
 
 		// Values correspondent to x-axis on the Jframe
 		private static final int X_AXIS_X1 = 12;
@@ -181,7 +181,7 @@ public abstract class GeneralPlot {
 				// Draw x-axis label, if available
 				if (this.x_axis_label != null)
 					g.drawString(this.x_axis_label, 
-						MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - MakeAxis.LABEL_OFFSET + 1 - MakeAxis.CHAR_PIXELOFFSET * this.x_axis_label.length(), 
+						MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - 2*MakeAxis.LABEL_OFFSET - MakeAxis.CHAR_PIXELOFFSET * this.x_axis_label.length(), 
 						MakeAxis.Y_AXIS_Y1 + Y_AXIS_Y2 - MakeAxis.LABEL_OFFSET - this.x_axis_offset);
 			}
 		}
@@ -224,7 +224,7 @@ public abstract class GeneralPlot {
 				Integer xPlaceInteger = ((Double) Math.ceil(xPlace)).intValue(); 
 
 				// Fix up found value in order to print the value correctly (and not something like 3.9999999987).
-				String xPositionValue = ((Integer) ((Double) Math.ceil(i)).intValue()).toString();
+				String xPositionValue = ((Double) (Math.round(i * 10.0)/10.0)).toString();
 
 				// Draw a small horizontal mark on the correspondent x-value of the current interval value
 				g.drawLine(
@@ -256,7 +256,7 @@ public abstract class GeneralPlot {
 				Integer yPlaceInteger = ((Double) Math.ceil(yPlace)).intValue(); 
 
 				// Fix up found value in order to print the value correctly (and not something like 3.9999999987).
-				String yPositionValue = ((Long) Math.round(i)).toString();
+				String yPositionValue = ((Double) (Math.round(i * 10.0)/10.0)).toString();
 
 				// Draw a small horizontal mark on the correspondent y-value of the current interval value
 				g.drawLine(
@@ -488,10 +488,10 @@ public abstract class GeneralPlot {
 	}
 
 	/**
-	* Reverse the axes visibility on the plot (false by default).
+	* Set the axes visibility (false by default)
 	*/
-	public static void setAxis() {
-		GeneralPlot.plot_axis_visible = !GeneralPlot.plot_axis_visible;
+	public static void setAxis(boolean value) {
+		GeneralPlot.plot_axis_visible = value;
 	}
 
 	/**

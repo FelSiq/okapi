@@ -1,7 +1,7 @@
 package plotsOkapiPack;
 
 /**
-*
+* Plot style BoxPlot.
 */
 public class PlotBox extends GeneralPlot {
 	// -------------------------------------------------
@@ -9,27 +9,24 @@ public class PlotBox extends GeneralPlot {
 
 	// -------------------------------------------------
 	// CLASS CONSTRUCTOR
-	/**
-	* 
-	*/
 	public PlotBox() {
 		super();
 	}
 	// -------------------------------------------------
 	// METHOD SECTION
 
-
+	/**
+	* Setup up GeneralPlot parameters do this plot style.
+	*/
 	public static void setupPlotBox() {
-		// Set up stuff related to PlotBox
-
-	}
-
-	public void plot() {
-		// Do plot stuff
+		// Set up stuff related to PlotBox, if needed.
+		GeneralPlot.setAxis(true);
 	}
 
 	/**
-	* Just for tests, should be removed.
+	* Print stuff specific to this plot style.
 	*/
-	//public static void main(String[] args) {}
+	public void plot() {
+		// Do individual plot stuff
+	}
 }

@@ -385,8 +385,9 @@ public class Interpreter {
 			if (Interpreter.PARAM_KEEPER.yint != null)
 				GeneralPlot.setYInterval(Integer.parseInt(Interpreter.PARAM_KEEPER.yint)); // y-axis
 
-			// 2. Plot main title
-			GeneralPlot.setTitle(Interpreter.PARAM_KEEPER.title);
+			// 2. Plot main title (if title is not given, use table name instead by default)
+			GeneralPlot.setTitle(Interpreter.PARAM_KEEPER.title != null ? 
+				Interpreter.PARAM_KEEPER.title : Interpreter.PARAM_KEEPER.table);
 
 			// 3. Axes labels
 			GeneralPlot.setXAxisLabel(Interpreter.PARAM_KEEPER.xlab); // x-axis
@@ -427,30 +428,32 @@ public class Interpreter {
 				// Obligatory parameters fully satisfied, try to call correct plot
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						try {
-							//Pegar metodo com o nome "type"
-							//Dar invoke no metodo de nome "type".
-							//Class plotType = Class.forName(Interpreter.PARAM_KEEPER.type);
-							/*Class plotType = Class.forName("PlotBox");
-							
-							// Get class setup method
-							Method setupMethod = plotType.getClass().getDeclaredMethod("setup" + plotType.getClass().getName(), (Class<?>[]) null);
-							
-							// Invoke class plot setup method
-							setupMethod.invoke(null);*/
-
-							// Instantiate a class of this type.
-							GeneralPlot.setAxis();
-							GeneralPlot myPlot = new PlotBox();
-
-							// Get plot method of the class
-							//Method plotMethod = plotType.getClass().getDeclaredMethod("plot", (Class<?>[]) null);
-
-							// Invoke plot method
-							//plotMethod.invoke(myPlot);
-						} catch (/*ClassNotFoundException | IllegalAccessException | 
-							InvocationTargetException | NoSuchMethodException*/ Exception e) {
-							System.out.println(e.getMessage());
+						// Placeholder solution.
+						switch(Interpreter.PARAM_KEEPER.type) {
+							case "box": 
+								PlotBox.setupPlotBox();
+								GeneralPlot myPlotBox = new PlotBox();
+								break;
+							case "pie": 
+								PlotPie.setupPlotPie();
+								GeneralPlot myPlotPie = new PlotPie();
+								break;
+							case "bar": 
+								PlotBar.setupPlotBar();
+								GeneralPlot myPlotBar = new PlotBar();
+								break;
+							case "dot": 
+								PlotDot.setupPlotDot();
+								GeneralPlot myPlotDot = new PlotDot();
+								break;
+							case "line": 
+								PlotLine.setupPlotLine();
+								GeneralPlot myPlotLine = new PlotLine();
+								break;
+							default: 
+								System.out.println("E: invalid plot type."); 
+								Thread.currentThread().interrupt();
+								break;
 						}
 					}
 				});
