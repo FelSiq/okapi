@@ -10,6 +10,7 @@ import javax.swing.JLabel;
 
 // 2. Events
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.BorderLayout;
@@ -25,6 +26,11 @@ import java.awt.Color;
 import java.util.Collections;
 import java.util.Set;
 import java.util.List;
+
+// 5. To output a plot image
+import javax.imageio.ImageIO;
+import java.io.IOException;
+import java.io.File;
 
 // To be deleted.
 import javax.swing.SwingUtilities;
@@ -97,6 +103,12 @@ public abstract class GeneralPlot {
 		protected static final int BG_Y = 2;
 		protected static final int BG_W = 624;
 		protected static final int BG_H = 624;
+		protected BufferedImage plotImage;
+		// -------------------------------------------------
+		// CLASS CONSTRUCTOR
+		public BackgroundRectangle(BufferedImage newPlotImage) {
+			this.plotImage = newPlotImage;
+		}
 		// -------------------------------------------------
 
 		/**
@@ -294,12 +306,16 @@ public abstract class GeneralPlot {
 			// Draw axes limits
 			drawXIntervals(g);
 			drawYIntervals(g);
+
+			// Print given image on the current plot, with full alpha background
+			g.drawImage(super.plotImage, 0, 0, new Color(0, 0, 0, 0), this);
 		}
 
 		/**
 		* Class constructor with labeled axes and first quadrant only.
 		*/
-		public MakeAxis(String newXAxisLabel, String newYAxisLabel) {
+		public MakeAxis(BufferedImage newPlotImage, String newXAxisLabel, String newYAxisLabel) {
+			super(newPlotImage);
 			this.x_axis_label = newXAxisLabel;
 			this.y_axis_label = newYAxisLabel;
 			this.x_axis_offset = 0;
@@ -309,7 +325,8 @@ public abstract class GeneralPlot {
 		/**
 		* Class constructor with unlabeled axes and first quadrant only.
 		*/
-		public MakeAxis() {
+		public MakeAxis(BufferedImage newPlotImage) {
+			super(newPlotImage);
 			this.x_axis_label = "x";
 			this.y_axis_label = "y";
 			this.x_axis_offset = 0;
@@ -319,7 +336,8 @@ public abstract class GeneralPlot {
 		/**
 		* Class constructor with unlabeled axes and cartesian origin offset.
 		*/
-		public MakeAxis(int xAxisOffset, int yAxisOffset) {
+		public MakeAxis(BufferedImage newPlotImage, int xAxisOffset, int yAxisOffset) {
+			super(newPlotImage);
 			this.x_axis_label = "x";
 			this.y_axis_label = "y";
 			this.x_axis_offset = xAxisOffset;
@@ -329,7 +347,8 @@ public abstract class GeneralPlot {
 		/**
 		* Class constructor with labeled axes and cartesian origin offset.
 		*/
-		public MakeAxis(String newXAxisLabel, String newYAxisLabel, int xAxisOffset, int yAxisOffset) {
+		public MakeAxis(BufferedImage newPlotImage, String newXAxisLabel, String newYAxisLabel, int xAxisOffset, int yAxisOffset) {
+			super(newPlotImage);
 			this.x_axis_label = newXAxisLabel;
 			this.y_axis_label = newYAxisLabel;
 			this.x_axis_offset = xAxisOffset;
@@ -339,6 +358,15 @@ public abstract class GeneralPlot {
 
 	// -------------------------------------------------
 	// METHODS SECTION
+
+	/**
+	* 
+	* @Return 
+	* @Throws No exception.
+	*/
+	public static Integer getBackgroundDim() {
+		return GeneralPlot.BackgroundRectangle.BG_W;
+	}
 
 	/**
 	* Instantiate a new JButton.
@@ -383,19 +411,19 @@ public abstract class GeneralPlot {
 	* Instantiates a new main JPanel.
 	* @Return A brand-new main Jpanel.
 	*/
-	private JPanel createPanel() {
+	private JPanel createPanel(BufferedImage plotImage) {
 		// Creates new panel
 		JPanel newPanel = new JPanel();
 
 		// Add plot background with or without axis
 		// Beware with the ternary operator.
 		newPanel.add(GeneralPlot.plot_axis_visible 
-			? new GeneralPlot.MakeAxis(
+			? new GeneralPlot.MakeAxis(plotImage,
 				GeneralPlot.plot_axis_xlabel, 
 				GeneralPlot.plot_axis_ylabel, 
 				GeneralPlot.plot_axis_xoffset, 
 				GeneralPlot.plot_axis_yoffset) 
-			: new GeneralPlot.BackgroundRectangle());
+			: new GeneralPlot.BackgroundRectangle(plotImage));
 
 		// Return brand-new panel
 		return newPanel;
@@ -443,6 +471,7 @@ public abstract class GeneralPlot {
 
 	/**
 	* Create a Panel button only
+	* @Throws No exceptions.
 	*/
 	private JPanel createButtonsPanel(JButton... buttons) {
 		// Instantiate a new Panel
@@ -461,32 +490,57 @@ public abstract class GeneralPlot {
 	/**
 	* GUI plot initialization
 	*/
-	protected GeneralPlot() {
+	protected GeneralPlot(BufferedImage plotImage) {
 		// Instantiate auxiliary buttons
 		// Save button (create a output file with the given graphic)
-		JButton bSave = createButton("Save", KeyEvent.VK_P);
-		bSave.addActionListener(new ActionListener () {
-			public void actionPerformed(ActionEvent e) {
-				// To be continued..
-			}
-		});
+		final JButton bSave = createButton("Save", KeyEvent.VK_P);
 
 		// Close the plot window
-		JButton bClose = createButton("Close", KeyEvent.VK_C);
+		final JButton bClose = createButton("Close", KeyEvent.VK_C);
 
 		// Creates the panel
-		JPanel mainPanel = createPanel();
+		final JPanel mainPanel = createPanel(plotImage);
 
 		// Create a button-only panel
-		JPanel buttonsPanel = createButtonsPanel(bSave, bClose);
+		final JPanel buttonsPanel = createButtonsPanel(bSave, bClose);
 
 		// Create frame
-		JFrame myFrame = createFrame(GeneralPlot.PLOT_WINDOW_TITLE, mainPanel, buttonsPanel);
+		final JFrame myFrame = createFrame(GeneralPlot.PLOT_WINDOW_TITLE, mainPanel, buttonsPanel);
 
 		// Add funcionality on the Close button
 		bClose.addActionListener(new ActionListener () {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent ae) {
 				myFrame.dispose();
+			}
+		});
+
+		// Add funcionality on the Save button
+		bSave.addActionListener(new ActionListener () {
+			public void actionPerformed(ActionEvent ae) {
+				// 
+				BufferedImage outputImage = new BufferedImage(
+					mainPanel.getWidth(), 
+					mainPanel.getHeight(),
+					BufferedImage.TYPE_INT_RGB);
+				// 
+				Graphics g = outputImage.createGraphics();
+				mainPanel.paint(g);
+				// 
+				try {
+					// 
+					File outputFile = new File(GeneralPlot.plot_title.replaceAll("\\s+", "") + ".jpg");
+
+					// If file already exists, use a counter to set up a sightly modified name
+					int counter = 1;
+					while(outputFile.exists()) {
+						outputFile = new File(GeneralPlot.plot_title.replaceAll("\\s+", "") + counter + ".jpg");
+						counter++;
+					} 
+					// 
+					ImageIO.write(outputImage, "JPEG", outputFile);
+				} catch (IOException e) {
+					System.out.println(e.getMessage());
+				}
 			}
 		});
 	}

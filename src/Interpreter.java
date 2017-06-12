@@ -36,17 +36,18 @@ import javax.swing.SwingWorker;
 * right action after it, whatever if input is or not a valid one.
 */
 
-public class Interpreter {
+public abstract class Interpreter {
 	//---------------------------------------------
 	// CONSTANT SECTION
-	// Standard user input getter
-	private static final Scanner MAIN_INPUT_SCANNER = new Scanner(System.in);
 
 	// Hold all this class declared method names, to match the user input
 	private static final Method[] INTERPRETER_METHODS = Interpreter.class.getDeclaredMethods();
 	
 	// Tell how many commands are available, on this program version, to recognition
 	private static final int COMMAND_NUMBER = (Interpreter.INTERPRETER_METHODS.length - 1);
+
+	// Get field labels of the InterpreterParameters class.
+	private static final Field[] PARAM_FIELD_NAMES = InterpreterParameters.class.getDeclaredFields();
 	
 	// Permited characters inside a non-arithmetic command (both for parameters and commands)
 	private static final String PERMITED_CHARACTERS = "-+_\\.,;=\\w\\{\\}\\(\\)\\[\\]";
@@ -66,14 +67,8 @@ public class Interpreter {
 	// Checks if there is at least on redefinition of a string parameter from a user input
 	private static final String CHECK_INPUT_REDUNDANCY_STR = "\\b([" + PERMITED_CHARACTERS + "]+)\\s*" + PARAM_ATTRIBUTION + ".+(?:\\1)(?=\\s*" + PARAM_ATTRIBUTION + ")\\b";
 
-	// Instantiation of arithmetic expression solver
-	private static final Arithmetic ARITHMETIC_SOLVER = new Arithmetic();
-
-	// Inner class, which keeps all the function parameters inside it
-	private static final Interpreter.InterpreterParameters PARAM_KEEPER = new Interpreter.InterpreterParameters();
-
-	// Get field labels of the InterpreterParameters class.
-	private static final Field[] PARAM_FIELD_NAMES = InterpreterParameters.class.getDeclaredFields();
+	// Get obtain plotting limits 
+	private static final String PLOT_REGEX_LIMITS = "[\\(\\[{]\\s*([+-]?\\s*(?:\\d+[,.]?|\\d*[,.]\\d+))\\s*[,;:]\\s*([+-]?\\s*(?:\\d+[,.]?|\\d*[,.]\\d+))\\s*[\\)\\]}]";  
 
 	// Dependencies (requested parameters) of "matrix" command
 	private static final String[] MATRIX_OP_DEPENDENCIES = {"operation", "a", "b"};
@@ -87,25 +82,32 @@ public class Interpreter {
 	// Dependencies (requested parameters) of "plot" command
 	private static final String[] PLOT_OP_DEPENDENCIES = {"type", "table"};
 
-	// Get obtain plotting limits 
-	private static final String PLOT_REGEX_LIMITS = "[\\(\\[{]\\s*([+-]?\\s*(?:\\d+[,.]?|\\d*[,.]\\d+))\\s*[,;:]\\s*([+-]?\\s*(?:\\d+[,.]?|\\d*[,.]\\d+))\\s*[\\)\\]}]";  
+	//---------------------------------------------
+	// CONSTANT GLOBAL ACCESS SECTION
+	// Standard user input getter
+	private static final Scanner MAIN_INPUT_SCANNER = new Scanner(System.in);
 
+	// Instantiation of arithmetic expression solver
+	private static final Arithmetic ARITHMETIC_SOLVER = new Arithmetic();
+
+	// Inner class, which keeps all the function parameters inside it
+	private static final Interpreter.InterpreterParameters PARAM_KEEPER = new Interpreter.InterpreterParameters();
+
+	// Colletion of all user created tables
+	private static final TreeMap<String, List<List<Double>>> CRATED_TABLES = new TreeMap<String, List<List<Double>>>();
+
+	// These variables holds the regex compiled pattern, used to process user input
+	private static Pattern 
+		REGPATTERN_NEGATED_ARITHMETIC,
+		REGPATTERN_INPUT_REDUNDANCY,
+		REGPATTERN_PARAM_PARSING,
+		REGPATTERN_INTERPRET_INPUT,
+		REGPATTERN_PLOT_LIMITS;
 	//---------------------------------------------
 	//VARIABLE SECTION
 
 	// Tell if exit command is or is not been called.
 	private static boolean endOfProgram = false;
-
-	// Colletion of all user created tables
-	private TreeMap<String, List<List<Double>>> createdTables;
-
-	// These variables holds the regex compiled pattern, used to process user input
-	private static Pattern 
-		negatedArithmeticRegexPattern,
-		checkInputRedundancyPattern,
-		parameterParsingPattern,
-		mainRegexPattern,
-		plottingLimitsPattern;
 
 	//---------------------------------------------
 	// IINER CLASSES SECTION
@@ -176,7 +178,7 @@ public class Interpreter {
 		*/
 		private static void processParameters(String userInput) {
 			// Set up user parameter matching
-			Matcher userCommandArgs = Interpreter.parameterParsingPattern.matcher(userInput);
+			Matcher userCommandArgs = Interpreter.REGPATTERN_PARAM_PARSING.matcher(userInput);
 
 			// Used to give user a warning
 			Boolean invalidationFlag;
@@ -272,23 +274,23 @@ public class Interpreter {
 	}
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
-	public Interpreter() {
+	public static void compile() {
 		try {
 			// Regex used to parse user input parameters
-			this.parameterParsingPattern = Pattern.compile(Interpreter.PARAM_PARSING_STR);
+			Interpreter.REGPATTERN_PARAM_PARSING = Pattern.compile(Interpreter.PARAM_PARSING_STR);
 
 			// If this regex have a match, then the input string has at least two equal words  
-			this.checkInputRedundancyPattern = Pattern.compile(Interpreter.CHECK_INPUT_REDUNDANCY_STR);
+			Interpreter.REGPATTERN_INPUT_REDUNDANCY = Pattern.compile(Interpreter.CHECK_INPUT_REDUNDANCY_STR);
 
 			// Compile negated arithmetic expression. If this pattern has at least match, then the
 			// current user input can not be a arithmetic expression.
-			this.negatedArithmeticRegexPattern = Pattern.compile(Interpreter.NEGATED_ARITHMETIC_REGEX_STR);
+			Interpreter.REGPATTERN_NEGATED_ARITHMETIC = Pattern.compile(Interpreter.NEGATED_ARITHMETIC_REGEX_STR);
 
 			// Compile general regex, used to match both main command and its parameters 
-			this.mainRegexPattern = Pattern.compile(Interpreter.DEFAULT_REGEX_STRING);
+			Interpreter.REGPATTERN_INTERPRET_INPUT = Pattern.compile(Interpreter.DEFAULT_REGEX_STRING);
 
 			// Interpret the given plotting axes limits
-			this.plottingLimitsPattern = Pattern.compile(Interpreter.PLOT_REGEX_LIMITS);
+			Interpreter.REGPATTERN_PLOT_LIMITS = Pattern.compile(Interpreter.PLOT_REGEX_LIMITS);
 			
 			// Sort the method list of Interpreter Class, by name, in order to use binary searchs
 			Arrays.sort(INTERPRETER_METHODS, 
@@ -297,9 +299,6 @@ public class Interpreter {
 						return a.getName().compareTo(b.getName());
 					}
 				});
-
-			// Init the TreeMap which holds all user create tables
-			this.createdTables = new TreeMap<String, List<List<Double>>>();
 		} catch (PatternSyntaxException pse) {
 			System.out.println("E: Incorrect regex pattern.");
 		}
@@ -313,9 +312,9 @@ public class Interpreter {
 	* @Throws No exceptions.
 	* @Return Always true.
 	*/
-	private Boolean list() {
+	private static Boolean list() {
 		// Get the name of all created tables on this program section, if any
-		Set<String> allTableNames = this.createdTables.keySet();
+		Set<String> allTableNames = Interpreter.CRATED_TABLES.keySet();
 
 		// Check if user already create at least one table
 		if (!allTableNames.isEmpty()) {
@@ -325,7 +324,7 @@ public class Interpreter {
 			// Print the name of all available tables
 			for (String tableName : allTableNames) {
 				// Recover the current table
-				List<List<Double>> currentTable = this.createdTables.get(tableName);
+				List<List<Double>> currentTable = Interpreter.CRATED_TABLES.get(tableName);
 				// Print it's name and its dimensions, if not empty
 				System.out.println("\t> " + tableName + 
 					(currentTable.get(0) != null 
@@ -345,7 +344,7 @@ public class Interpreter {
 	* @Throws No exceptions.
 	* @Return Always false.
 	*/
-	private Boolean callInvalidMethod() {
+	private static Boolean callInvalidMethod() {
 		System.out.println("E: this command is invalid!");
 		return false;
 	} 
@@ -355,7 +354,7 @@ public class Interpreter {
 	* @Throws No exceptions.
 	* @Return Always true.
 	*/
-	private Boolean exit() {
+	private static Boolean exit() {
 		System.out.println("System: program will now exit.");
 		Interpreter.endOfProgram = true;
 		return true;
@@ -367,7 +366,7 @@ public class Interpreter {
 	* @Throws No exceptions.
 	* @Return false, if a plot argument is invalid. True otherwise.
 	*/
-	private Boolean magplot() {
+	private static Boolean magplot() {
 		// This is the main plot method call. 
 		try {
 			// Check if this method paremeter dependencies was satisfied.
@@ -394,7 +393,7 @@ public class Interpreter {
 			GeneralPlot.setYAxisLabel(Interpreter.PARAM_KEEPER.ylab); // y-axis
 
 			// Get table for plotting
-			List<List<Double>> sourceTable = this.createdTables.get(Interpreter.PARAM_KEEPER.table);
+			List<List<Double>> sourceTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
 
 			// Check if given table exists
 			if (sourceTable != null) {
@@ -406,7 +405,7 @@ public class Interpreter {
 				// User may have a chance to impose it's own plotting limits.
 				// Limits for x-axis
 				if (Interpreter.PARAM_KEEPER.xlim != null) {
-					Matcher plotLims = this.plottingLimitsPattern.matcher(Interpreter.PARAM_KEEPER.xlim.replaceAll("\\s+", " "));
+					Matcher plotLims = Interpreter.REGPATTERN_PLOT_LIMITS.matcher(Interpreter.PARAM_KEEPER.xlim.replaceAll("\\s+", " "));
 					if (plotLims.find()) {
 						GeneralPlot.setXLimits(
 							Double.parseDouble(plotLims.group(1)), 
@@ -416,7 +415,7 @@ public class Interpreter {
 
 				// Limits for y-axis
 				if (Interpreter.PARAM_KEEPER.ylim != null) {
-					Matcher plotLims = this.plottingLimitsPattern.matcher(Interpreter.PARAM_KEEPER.ylim.replaceAll("\\s+", " "));
+					Matcher plotLims = Interpreter.REGPATTERN_PLOT_LIMITS.matcher(Interpreter.PARAM_KEEPER.ylim.replaceAll("\\s+", " "));
 					if (plotLims.find()) {
 						GeneralPlot.setYLimits(
 							Double.parseDouble(plotLims.group(1)), 
@@ -424,14 +423,14 @@ public class Interpreter {
 					}
 				}
 
-
 				// Obligatory parameters fully satisfied, try to call correct plot
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
+						List<List<Double>> dataTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
 						// Placeholder solution.
 						switch(Interpreter.PARAM_KEEPER.type) {
 							case "box": 
-								PlotBox.setupPlotBox();
+								PlotBox.setupPlotBox(dataTable);
 								GeneralPlot myPlotBox = new PlotBox();
 								break;
 							case "pie": 
@@ -479,7 +478,7 @@ public class Interpreter {
 	* @Throws No exception.
 	* @Return False, if something went wrong within user command interpretation. True, otherwise.
 	*/
-	private Boolean table() {
+	private static Boolean table() {
 		try {
 			// Check if this method paremeter dependencies was satisfied.
 			String notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_DEPENDENCIES);
@@ -542,7 +541,7 @@ public class Interpreter {
 
 				if (newTable != null) {
 					// 3. Need to add the new table to the user table collection, with the specified name.
-					this.createdTables.put(Interpreter.PARAM_KEEPER.name, newTable);
+					Interpreter.CRATED_TABLES.put(Interpreter.PARAM_KEEPER.name, newTable);
 				} else {
 					// Error message
 					System.out.println("E: can't create table.");
@@ -552,7 +551,7 @@ public class Interpreter {
 				// Then it's not a special case to be handled.
 				
 				// Get the user specified table
-				List<List<Double>> selectedTable = this.createdTables.get(Interpreter.PARAM_KEEPER.name);
+				List<List<Double>> selectedTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.name);
 				
 				// Checks if specified table, to be worked on, exists				
 				if (selectedTable != null) {
@@ -590,7 +589,7 @@ public class Interpreter {
 	* @Return False, if user command does not fills up all necessary conditions for the operation. True, otherwise.
 	* @Throws No exceptions.
 	*/
-	private Boolean matrix() {
+	private static Boolean matrix() {
 		try {
 			// Check if this method paremeter dependencies was satisfied.
 			String notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.MATRIX_OP_DEPENDENCIES);
@@ -622,10 +621,10 @@ public class Interpreter {
 			}
 
 			// Get the A operand
-			List<List<Double>> matrixOperandA = this.createdTables.get(Interpreter.PARAM_KEEPER.a);
+			List<List<Double>> matrixOperandA = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.a);
 
 			// Get the B operand
-			List<List<Double>> matrixOperandB = this.createdTables.get(Interpreter.PARAM_KEEPER.b);
+			List<List<Double>> matrixOperandB = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.b);
 
 			// Check if specified table, to be worked on, exists				
 			if (matrixOperandA != null && matrixOperandB != null) {
@@ -646,7 +645,7 @@ public class Interpreter {
 					} else {
 						if (Interpreter.PARAM_KEEPER.r != null) {
 							// User gives a table name to store result value, store the table
-							this.createdTables.put(Interpreter.PARAM_KEEPER.r, matrixOperandR);
+							Interpreter.CRATED_TABLES.put(Interpreter.PARAM_KEEPER.r, matrixOperandR);
 						} 
 
 						if (Interpreter.PARAM_KEEPER.file != null) {
@@ -685,7 +684,7 @@ public class Interpreter {
 	* @Throws No exceptions.
 	* @Return True, if command was correctly recognized. False otherwise.
 	*/
-	public boolean getInput() {
+	public static boolean getInput() {
 		try {
 			//Get user next input from STDIN.
 			String userInput = MAIN_INPUT_SCANNER.nextLine();
@@ -694,7 +693,7 @@ public class Interpreter {
 			//If this regex has at least a match, then the user input
 			//can not be a valid arithmetic expression and, then, check if
 			//it is a valid method name.
-			Matcher regexArithmeticNotMatched = this.negatedArithmeticRegexPattern.matcher(userInput);
+			Matcher regexArithmeticNotMatched = Interpreter.REGPATTERN_NEGATED_ARITHMETIC.matcher(userInput);
 
 			if (regexArithmeticNotMatched.find()) {
 				//It is not a arithmetic expression.
@@ -704,7 +703,7 @@ public class Interpreter {
 
 				// Now, check user's next input line and
 				// get the result of the default regex match, if any.
-				Matcher regexTextMatched = this.mainRegexPattern.matcher(userInput);
+				Matcher regexTextMatched = Interpreter.REGPATTERN_INTERPRET_INPUT.matcher(userInput);
 
 				// Verify if user input made sense, according to the default regex pattern
 				if (regexTextMatched.find()) {
@@ -718,7 +717,7 @@ public class Interpreter {
 					}
 
 					// Last but not least, check for forbidden input parameter redefinition
-					Matcher redefinitionCheck = checkInputRedundancyPattern.matcher(userInput);
+					Matcher redefinitionCheck = Interpreter.REGPATTERN_INPUT_REDUNDANCY.matcher(userInput);
 					if (redefinitionCheck.find()) {
 						System.out.println("E: found redefinition of input parameter \"" + 
 							redefinitionCheck.group(1) + "\"! abort.");
@@ -730,7 +729,7 @@ public class Interpreter {
 						Interpreter.InterpreterAuxiliaryMethods.processParameters(userInput);
 
 					// Try to call the identified method, if any, and return true if success.
-					return (Boolean) methodToBeCalled.invoke(this);
+					return (Boolean) methodToBeCalled.invoke(null);
 				}
 			} else if (!userInput.replaceAll("\\s+", "").equals("")){
 				//It is a arithmetic expression, call a method to solve it and then display the result.
@@ -745,7 +744,7 @@ public class Interpreter {
 		} catch (IllegalArgumentException iae) {
 			System.out.println("E: missing or excessive parameters for this function!");
 		} catch (NullPointerException npe) {
-			this.callInvalidMethod();
+			Interpreter.callInvalidMethod();
 		} catch (IllegalArithmeticExpression iae) {
 			System.out.println(iae.getMessage());
 		}
@@ -759,7 +758,7 @@ public class Interpreter {
 	* @Throws No exceptions.
 	* @Return True if "exit" command was given already. False otherwise.
 	*/
-	public boolean programEnds() {
+	public static boolean programEnds() {
 		return Interpreter.endOfProgram;
 	}
 
@@ -767,10 +766,10 @@ public class Interpreter {
 	* For test purpose. Should not exists on final version.
 	*/
 	public static void main(String[] args) {
-		Interpreter myInt = new Interpreter ();
-		while(!myInt.programEnds()) {
+		Interpreter.compile();
+		while(!Interpreter.programEnds()) {
 			System.out.print("> ");
-			myInt.getInput();
+			Interpreter.getInput();
 		}
 	}
 }
