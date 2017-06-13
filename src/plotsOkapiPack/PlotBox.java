@@ -22,12 +22,17 @@ import java.util.List;
 public class PlotBox extends GeneralPlot {
 	// -------------------------------------------------
 	// CONSTANTS SECTON
-	private static final int BOX_HEIGHT = 80;
+	private static final int AXIS_OFFSET = 150;
 
-	private static final int BOX_OFFSET = GeneralPlot.getBackgroundDim()/2 + 20;
+	private static final int BOX_HEIGHT = (GeneralPlot.getBackgroundDim())/2 - PlotBox.AXIS_OFFSET + 50;
 
-	private static final int BOX_TEXTOFFSET = 60;
+	private static final int BOX_OFFSET = (GeneralPlot.getBackgroundDim() - PlotBox.AXIS_OFFSET)/2;
 
+	private static final int VALUE_OFFSET = (BOX_OFFSET + (BOX_HEIGHT/2) + 30);
+
+	private static final int TEXT_OFFSET = (BOX_OFFSET - (BOX_HEIGHT/2) - 30);
+
+	private static final int CHARACTER_OFFSET = 7;
 	// -------------------------------------------------
 	// VARIABLES SECTION
 	private static BufferedImage plotImage;
@@ -51,7 +56,7 @@ public class PlotBox extends GeneralPlot {
 		GeneralPlot.setYLimits(0.0, 0.0);
 
 		// Set a good visual x-axis offset 
-		GeneralPlot.setXAxisOffset(175);
+		GeneralPlot.setXAxisOffset(PlotBox.AXIS_OFFSET);
 
 		// Prepare Boxplot image
 		PlotBox.plot(userTable, userColor);
@@ -64,6 +69,14 @@ public class PlotBox extends GeneralPlot {
 		Double aux = ((double) values.size()) * ((double) quartile / 4.0);
 		Integer k = aux.intValue();
 		return (values.get(k) + ((Math.abs(aux - k) < GeneralPlot.FLOAT_EQUIVALENCE) ? values.get(k - 1) : values.get(k))) / 2.0;
+	}
+
+	/**
+	*
+	*/
+	private static void drawValue(Graphics2D g, Double value, Integer position, Integer yAdjust) {
+		String dummy = value.toString();
+		g.drawString(dummy, position - CHARACTER_OFFSET * dummy.length()/2, PlotBox.TEXT_OFFSET + yAdjust);
 	}
 
 	/**
@@ -122,6 +135,11 @@ public class PlotBox extends GeneralPlot {
 		Integer minOutlierXPosition = getXPosition(minOutlier).intValue();
 		Integer maxOutlierXPosition = getXPosition(maxOutlier).intValue();
 
+		// ---------------------------------------------------
+		// PAINT SECTION
+		BasicStroke strokeStyle = new BasicStroke(2);
+		g.setStroke(strokeStyle);
+
 		// Set user given color (white by default)
 		g.setColor(userColor);
 
@@ -144,10 +162,6 @@ public class PlotBox extends GeneralPlot {
 		// ---------------------------------------------------
 		// LINE SECTION
 		// 
-
-		//
-		BasicStroke strokeStyle = new BasicStroke(2);
-		g.setStroke(strokeStyle);
 
 		//		
 		g.drawLine(minValueXPosition, 
@@ -178,15 +192,47 @@ public class PlotBox extends GeneralPlot {
 		// ---------------------------------------------------
 		// TEXT SECTION
 		// Need to be improved.
-		g.drawString((minValue < minOutlier ? "(outlier)\n" : "") + "(min)\n" + minValue.toString(), minValueXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
-		g.drawString((maxValue > maxOutlier ? "(outlier)\n" : "") + "(max)\n" + maxValue.toString(), maxValueXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
-		g.drawString("(Q1)\n" + fstQuartile.toString(), fstQuartileXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
-		g.drawString("(Q2)\n" + sndQuartile.toString(), sndQuartileXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
-		g.drawString("(Q3)\n" + trdQuartile.toString(), trdQuartileXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+		Integer q2CharacterAdjust = (sndQuartileXPosition - fstQuartileXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
+		Integer q3CharacterAdjust = (trdQuartileXPosition - sndQuartileXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
 
-		if (minValue < minOutlier)
-			g.drawString("(min)\n" + minOutlier.toString(), minOutlierXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
-		if (maxValue > maxOutlier)
-			g.drawString("(max)\n" + maxOutlier.toString(), maxOutlierXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+		drawValue(g, minValue, minValueXPosition, 0);
+		drawValue(g, fstQuartile, fstQuartileXPosition, 0);
+		drawValue(g, sndQuartile, sndQuartileXPosition, - q2CharacterAdjust);
+		drawValue(g, trdQuartile, trdQuartileXPosition, - q3CharacterAdjust -
+			(q2CharacterAdjust > 0 && q3CharacterAdjust > 0 ? q2CharacterAdjust : 0));
+		drawValue(g, maxValue, maxValueXPosition, 0);
+
+		g.drawString("MIN", minValueXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
+		g.drawString("Q1", fstQuartileXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
+		g.drawString("Q2", sndQuartileXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET + q2CharacterAdjust);
+		g.drawString("Q3", trdQuartileXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET + q3CharacterAdjust + 
+			(q2CharacterAdjust > 0 && q3CharacterAdjust > 0 ? q2CharacterAdjust : 0));
+		g.drawString("MAX", maxValueXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET );
+
+		// Outliers
+		if (minValue < minOutlier) {
+			g.setColor(Color.BLACK);
+			g.drawString("(OUTLIER)", minValueXPosition - CHARACTER_OFFSET*4, PlotBox.VALUE_OFFSET - CHARACTER_OFFSET*2);
+			g.setColor(Color.RED);
+			g.drawString("MIN", minOutlierXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
+			g.drawString("(THRESHOLD)", minOutlierXPosition - CHARACTER_OFFSET*5, PlotBox.VALUE_OFFSET + CHARACTER_OFFSET*2);
+			drawValue(g, minOutlier, minOutlierXPosition, 0);
+			g.drawLine(minOutlierXPosition, 
+				PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
+				minOutlierXPosition, 
+				PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
+		}
+		if (maxValue > maxOutlier) {
+			g.setColor(Color.BLACK);
+			g.drawString("(OUTLIER)", maxValueXPosition - CHARACTER_OFFSET*4, PlotBox.VALUE_OFFSET - CHARACTER_OFFSET*2);
+			g.setColor(Color.RED);
+			g.drawString("MAX", maxOutlierXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
+			g.drawString("(THRESHOLD)", maxOutlierXPosition - CHARACTER_OFFSET*5, PlotBox.VALUE_OFFSET + CHARACTER_OFFSET*2);
+			drawValue(g, maxOutlier, maxOutlierXPosition, 0);
+			g.drawLine(maxOutlierXPosition, 
+				PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
+				maxOutlierXPosition, 
+				PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
+		}
 	}
 }
