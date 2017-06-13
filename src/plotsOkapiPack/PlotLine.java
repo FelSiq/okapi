@@ -1,16 +1,22 @@
 package plotsOkapiPack;
+// -------------------------------------------------
+// IMPORT SECTION
+import java.awt.image.BufferedImage;
+import java.awt.Color;
+import java.util.List;
 
 /**
 * Plot style Line.
 */
 public class PlotLine extends GeneralPlot {
 	// -------------------------------------------------
-	// INNER CLASS SECTION
+	// VARIABLES SECTION
+	private static BufferedImage plotImage;
 
 	// -------------------------------------------------
 	// CLASS CONSTRUCTOR
 	public PlotLine() {
-		super();
+		super(PlotLine.plotImage);
 	}
 	// -------------------------------------------------
 	// METHOD SECTION
@@ -18,7 +24,7 @@ public class PlotLine extends GeneralPlot {
 	/**
 	* Setup up GeneralPlot parameters do this plot style.
 	*/
-	public static void setupPlotLine() {
+	public static void setupPlotLine(List<List<Double>> dataTable, Color userColor) {
 		// Set up stuff related to PlotLine, if needed.
 		GeneralPlot.setAxis(true);
 	}

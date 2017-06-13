@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.Class;
+import java.awt.Color;
 
 // 3. For swing thread
 import javax.swing.SwingUtilities;
@@ -271,6 +272,60 @@ public abstract class Interpreter {
 			// user input command.
 			return notSatisfiedDependency;
 		}
+
+		/**
+		* Auxiliary method for plotting (set up user plot parameters).
+		* @Throws No Exception.
+		*/
+		private static void setPlottingParameters() {
+			// 1. Axes number of intervals
+			try {
+				if (Interpreter.PARAM_KEEPER.xint != null)
+					GeneralPlot.setXInterval(Integer.parseInt(Interpreter.PARAM_KEEPER.xint)); // x-axis
+				if (Interpreter.PARAM_KEEPER.yint != null)
+					GeneralPlot.setYInterval(Integer.parseInt(Interpreter.PARAM_KEEPER.yint)); // y-axis
+
+				// 2. Plot main title (if title is not given, use table name instead by default)
+				GeneralPlot.setTitle(Interpreter.PARAM_KEEPER.title != null ? 
+					Interpreter.PARAM_KEEPER.title : Interpreter.PARAM_KEEPER.table);
+
+				// 3. Axes labels
+				GeneralPlot.setXAxisLabel(Interpreter.PARAM_KEEPER.xlab); // x-axis
+				GeneralPlot.setYAxisLabel(Interpreter.PARAM_KEEPER.ylab); // y-axis
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		}  
+
+		/**
+		* Auxiliary method for plotting (set up user plot manual limits).
+		* @Throws No Exception.
+		*/
+		private static void setPlottingManualLimits() {
+			// Limits for x-axis
+			try {
+				if (Interpreter.PARAM_KEEPER.xlim != null) {
+					Matcher plotLims = Interpreter.REGPATTERN_PLOT_LIMITS.matcher(Interpreter.PARAM_KEEPER.xlim.replaceAll("\\s+", " "));
+					if (plotLims.find()) {
+						GeneralPlot.setXLimits(
+							Double.parseDouble(plotLims.group(1)), 
+							Double.parseDouble(plotLims.group(2)));
+					}
+				}
+
+				// Limits for y-axis
+				if (Interpreter.PARAM_KEEPER.ylim != null) {
+					Matcher plotLims = Interpreter.REGPATTERN_PLOT_LIMITS.matcher(Interpreter.PARAM_KEEPER.ylim.replaceAll("\\s+", " "));
+					if (plotLims.find()) {
+						GeneralPlot.setYLimits(
+							Double.parseDouble(plotLims.group(1)), 
+							Double.parseDouble(plotLims.group(2)));
+					}
+				}
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		}  
 	}
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
@@ -378,19 +433,7 @@ public abstract class Interpreter {
 			}
 
 			// Set up user plotting parameters
-			// 1. Axes number of intervals
-			if (Interpreter.PARAM_KEEPER.xint != null)
-				GeneralPlot.setXInterval(Integer.parseInt(Interpreter.PARAM_KEEPER.xint)); // x-axis
-			if (Interpreter.PARAM_KEEPER.yint != null)
-				GeneralPlot.setYInterval(Integer.parseInt(Interpreter.PARAM_KEEPER.yint)); // y-axis
-
-			// 2. Plot main title (if title is not given, use table name instead by default)
-			GeneralPlot.setTitle(Interpreter.PARAM_KEEPER.title != null ? 
-				Interpreter.PARAM_KEEPER.title : Interpreter.PARAM_KEEPER.table);
-
-			// 3. Axes labels
-			GeneralPlot.setXAxisLabel(Interpreter.PARAM_KEEPER.xlab); // x-axis
-			GeneralPlot.setYAxisLabel(Interpreter.PARAM_KEEPER.ylab); // y-axis
+			Interpreter.InterpreterAuxiliaryMethods.setPlottingParameters();
 
 			// Get table for plotting
 			List<List<Double>> sourceTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
@@ -403,56 +446,50 @@ public abstract class Interpreter {
 				GeneralPlot.adjustParametersToTable(sourceTable);
 
 				// User may have a chance to impose it's own plotting limits.
-				// Limits for x-axis
-				if (Interpreter.PARAM_KEEPER.xlim != null) {
-					Matcher plotLims = Interpreter.REGPATTERN_PLOT_LIMITS.matcher(Interpreter.PARAM_KEEPER.xlim.replaceAll("\\s+", " "));
-					if (plotLims.find()) {
-						GeneralPlot.setXLimits(
-							Double.parseDouble(plotLims.group(1)), 
-							Double.parseDouble(plotLims.group(2)));
-					}
-				}
-
-				// Limits for y-axis
-				if (Interpreter.PARAM_KEEPER.ylim != null) {
-					Matcher plotLims = Interpreter.REGPATTERN_PLOT_LIMITS.matcher(Interpreter.PARAM_KEEPER.ylim.replaceAll("\\s+", " "));
-					if (plotLims.find()) {
-						GeneralPlot.setYLimits(
-							Double.parseDouble(plotLims.group(1)), 
-							Double.parseDouble(plotLims.group(2)));
-					}
-				}
+				Interpreter.InterpreterAuxiliaryMethods.setPlottingManualLimits();
 
 				// Obligatory parameters fully satisfied, try to call correct plot
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
+						// 
 						List<List<Double>> dataTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
-						// Placeholder solution.
-						switch(Interpreter.PARAM_KEEPER.type) {
-							case "box": 
-								PlotBox.setupPlotBox(dataTable);
-								GeneralPlot myPlotBox = new PlotBox();
-								break;
-							case "pie": 
-								PlotPie.setupPlotPie();
-								GeneralPlot myPlotPie = new PlotPie();
-								break;
-							case "bar": 
-								PlotBar.setupPlotBar();
-								GeneralPlot myPlotBar = new PlotBar();
-								break;
-							case "dot": 
-								PlotDot.setupPlotDot();
-								GeneralPlot myPlotDot = new PlotDot();
-								break;
-							case "line": 
-								PlotLine.setupPlotLine();
-								GeneralPlot myPlotLine = new PlotLine();
-								break;
-							default: 
-								System.out.println("E: invalid plot type."); 
-								Thread.currentThread().interrupt();
-								break;
+						// 
+						Color userColor = Color.WHITE;
+						try {
+							// 
+							if (Interpreter.PARAM_KEEPER.color != null)
+								userColor = (Color) Color.class.getDeclaredField(Interpreter.PARAM_KEEPER.color).get(null);
+						} catch (NoSuchFieldException | IllegalAccessException e) {
+							// 
+							System.out.println("W: invalid given color.");
+						} finally {
+							// Placeholder solution.
+							switch(Interpreter.PARAM_KEEPER.type) {
+								case "box": 
+									PlotBox.setupPlotBox(dataTable, userColor);
+									GeneralPlot myPlotBox = new PlotBox();
+									break;
+								case "pie": 
+									PlotPie.setupPlotPie(dataTable, userColor);
+									GeneralPlot myPlotPie = new PlotPie();
+									break;
+								case "bar": 
+									PlotBar.setupPlotBar(dataTable, userColor);
+									GeneralPlot myPlotBar = new PlotBar();
+									break;
+								case "dot": 
+									PlotDot.setupPlotDot(dataTable, userColor);
+									GeneralPlot myPlotDot = new PlotDot();
+									break;
+								case "line": 
+									PlotLine.setupPlotLine(dataTable, userColor);
+									GeneralPlot myPlotLine = new PlotLine();
+									break;
+								default: 
+									System.out.println("E: invalid plot type."); 
+									Thread.currentThread().interrupt();
+									break;
+							}
 						}
 					}
 				});
@@ -465,7 +502,7 @@ public abstract class Interpreter {
 					Interpreter.PARAM_KEEPER.table + 
 					"\". Please \"create\" it first.");
 			}
-		} catch (NullPointerException | IllegalArgumentException /*| IllegalAccessException*/ e) {
+		} catch (NullPointerException | IllegalArgumentException e) {
 			System.out.println(e.getMessage());
 		}
 
@@ -735,18 +772,11 @@ public abstract class Interpreter {
 				//It is a arithmetic expression, call a method to solve it and then display the result.
 				System.out.println(Interpreter.ARITHMETIC_SOLVER.solve(userInput));
 			}
-		} catch (IllegalStateException ise) {
-			System.out.println("E: main input Scanner was closed.");
-		} catch (IllegalAccessException iae) {
-			System.out.println("E: invalid access to method.");
-		} catch (InvocationTargetException ite) {
-			System.out.println("E: can't invoke selected method.");
-		} catch (IllegalArgumentException iae) {
-			System.out.println("E: missing or excessive parameters for this function!");
+		} catch (IllegalStateException | IllegalAccessException | InvocationTargetException | 
+			IllegalArgumentException | IllegalArithmeticExpression e) {
+			System.out.println(e.getMessage());
 		} catch (NullPointerException npe) {
 			Interpreter.callInvalidMethod();
-		} catch (IllegalArithmeticExpression iae) {
-			System.out.println(iae.getMessage());
 		}
 
 		//Return false, by default, if no regex match happens.

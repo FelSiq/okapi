@@ -157,6 +157,7 @@ public abstract class GeneralPlot {
 		// Default pixel-offset value of a character
 		private static final int CHAR_PIXELOFFSET = 7;
 
+		// 
 		private static final int MARK_HALFSIZE = 4;
 
 		// Values correspondent to x-axis on the Jframe
@@ -294,7 +295,7 @@ public abstract class GeneralPlot {
 		protected void paintComponent(Graphics g) {
 			// Draw a black border around the background rectangle
 			super.paintComponent(g);
-			
+
 			// Axes are black by default
 			g.setColor(Color.BLACK);
 

@@ -1,16 +1,22 @@
 package plotsOkapiPack;
+// -------------------------------------------------
+// IMPORT SECTION
+import java.awt.image.BufferedImage;
+import java.awt.Color;
+import java.util.List;
 
 /**
 * Plot style Dot.
 */
 public class PlotDot extends GeneralPlot {
 	// -------------------------------------------------
-	// INNER CLASS SECTION
+	// VARIABLES SECTION
+	private static BufferedImage plotImage;
 
 	// -------------------------------------------------
 	// CLASS CONSTRUCTOR
 	public PlotDot() {
-		super();
+		super(PlotDot.plotImage);
 	}
 	// -------------------------------------------------
 	// METHOD SECTION
@@ -18,7 +24,7 @@ public class PlotDot extends GeneralPlot {
 	/**
 	* Setup up GeneralPlot parameters do this plot style.
 	*/
-	public static void setupPlotDot() {
+	public static void setupPlotDot(List<List<Double>> dataTable, Color userColor) {
 		// Set up stuff related to PlotDot, if needed.
 		GeneralPlot.setAxis(true);
 	}
