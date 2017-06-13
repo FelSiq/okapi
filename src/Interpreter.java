@@ -325,7 +325,17 @@ public abstract class Interpreter {
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}
-		}  
+		}
+
+		/**
+		* Display a default error message, if current command is a invalid one.
+		* @Throws No exceptions.
+		* @Return Always false.
+		*/
+		private static Boolean callInvalidMethod() {
+			System.out.println("E: this command is invalid!");
+			return false;
+		} 
 	}
 	//---------------------------------------------
 	//CLASS CONSTRUCTOR
@@ -395,16 +405,6 @@ public abstract class Interpreter {
 	}
 
 	/**
-	* Display a default error message, if current command is a invalid one.
-	* @Throws No exceptions.
-	* @Return Always false.
-	*/
-	private static Boolean callInvalidMethod() {
-		System.out.println("E: this command is invalid!");
-		return false;
-	} 
-
-	/**
 	* Set flag "endOfProgram" to true. Further interpretations of this flag should be handled by another class.
 	* @Throws No exceptions.
 	* @Return Always true.
@@ -451,16 +451,16 @@ public abstract class Interpreter {
 				// Obligatory parameters fully satisfied, try to call correct plot
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						// 
+						// Get user asked table
 						List<List<Double>> dataTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
-						// 
+						// Set plot color scheme default to white
 						Color userColor = Color.WHITE;
 						try {
-							// 
+							// Try to recover user asked color, if any
 							if (Interpreter.PARAM_KEEPER.color != null)
 								userColor = (Color) Color.class.getDeclaredField(Interpreter.PARAM_KEEPER.color).get(null);
 						} catch (NoSuchFieldException | IllegalAccessException e) {
-							// 
+							// Error message (user typed a invalid color)
 							System.out.println("W: invalid given color.");
 						} finally {
 							// Placeholder solution.
@@ -486,7 +486,7 @@ public abstract class Interpreter {
 									GeneralPlot myPlotLine = new PlotLine();
 									break;
 								default: 
-									System.out.println("E: invalid plot type."); 
+									System.out.println("E: invalid plotting type."); 
 									Thread.currentThread().interrupt();
 									break;
 							}
@@ -776,7 +776,7 @@ public abstract class Interpreter {
 			IllegalArgumentException | IllegalArithmeticExpression e) {
 			System.out.println(e.getMessage());
 		} catch (NullPointerException npe) {
-			Interpreter.callInvalidMethod();
+			Interpreter.InterpreterAuxiliaryMethods.callInvalidMethod();
 		}
 
 		//Return false, by default, if no regex match happens.
@@ -790,6 +790,40 @@ public abstract class Interpreter {
 	*/
 	public static boolean programEnds() {
 		return Interpreter.endOfProgram;
+	}
+
+	/**
+	* Print off all available user commands.
+	* @Throws No exceptions.
+	* @Return Always true.
+	*/
+	public static Boolean commands() {
+		System.out.println("Listing all available commands:");
+		for (Method m : Interpreter.INTERPRETER_METHODS) {
+			try {
+				if (m.getReturnType().getName().equals("java.lang.Boolean"))
+					System.out.println("\t> " + m.getName());
+			} catch (NullPointerException e) {
+				System.out.println(e.getMessage());
+			}
+		}
+		return true;
+	}
+
+	/**
+	* Call a help system.
+	* @Throws No exceptions.
+	* @Return True, if function was found on the help system. False, otherwise.
+	*/
+	public static Boolean help() {
+		if (Interpreter.PARAM_KEEPER.operation != null) {
+			HelpSystem helpInstance = new HelpSystem(Interpreter.PARAM_KEEPER.operation);
+			return helpInstance.state();
+		} else {
+			System.out.println("E: Please specify the \"operation\" to access the help system." +
+				" Type \"commands\" to show then all.");
+		}
+		return false;
 	}
 
 	/**
