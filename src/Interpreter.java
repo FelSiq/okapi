@@ -95,7 +95,7 @@ public abstract class Interpreter {
 	private static final Interpreter.InterpreterParameters PARAM_KEEPER = new Interpreter.InterpreterParameters();
 
 	// Colletion of all user created tables
-	private static final TreeMap<String, List<List<Double>>> CRATED_TABLES = new TreeMap<String, List<List<Double>>>();
+	private static final TreeMap<String, OkapiTable<Double>> CREATED_TABLES = new TreeMap<String, OkapiTable<Double>>();
 
 	// These variables holds the regex compiled pattern, used to process user input
 	private static Pattern 
@@ -379,7 +379,7 @@ public abstract class Interpreter {
 	*/
 	private static Boolean list() {
 		// Get the name of all created tables on this program section, if any
-		Set<String> allTableNames = Interpreter.CRATED_TABLES.keySet();
+		Set<String> allTableNames = Interpreter.CREATED_TABLES.keySet();
 
 		// Check if user already create at least one table
 		if (!allTableNames.isEmpty()) {
@@ -389,12 +389,9 @@ public abstract class Interpreter {
 			// Print the name of all available tables
 			for (String tableName : allTableNames) {
 				// Recover the current table
-				List<List<Double>> currentTable = Interpreter.CRATED_TABLES.get(tableName);
+				OkapiTable<Double> currentTable = Interpreter.CREATED_TABLES.get(tableName);
 				// Print it's name and its dimensions, if not empty
-				System.out.println("\t> " + tableName + 
-					(currentTable.get(0) != null 
-						?	" [" + currentTable.size() + ", " + currentTable.get(0).size() + "]"
-						:	" (empty)"));
+				System.out.println("\t> " + tableName + " [" + currentTable.getRowNum() + ", " + currentTable.getColNum() + "]");
 			}
 		} else {
 			// No data table found.
@@ -436,7 +433,7 @@ public abstract class Interpreter {
 			Interpreter.InterpreterAuxiliaryMethods.setPlottingParameters();
 
 			// Get table for plotting
-			List<List<Double>> sourceTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
+			OkapiTable<Double> sourceTable = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
 
 			// Check if given table exists
 			if (sourceTable != null) {
@@ -452,7 +449,7 @@ public abstract class Interpreter {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
 						// Get user asked table
-						List<List<Double>> dataTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
+						OkapiTable<Double> dataTable = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
 						// Set plot color scheme default to white
 						Color userColor = Color.WHITE;
 						try {
@@ -560,7 +557,7 @@ public abstract class Interpreter {
 				}
 
 				// 2. Creates the new table with specified user parameters
-				List<List<Double>> newTable = null;
+				OkapiTable<Double> newTable = null;
 
 				// Check if a source file was given by user
 				if (sourceFile != null) {
@@ -568,17 +565,19 @@ public abstract class Interpreter {
 					newTable = TableManager.create(
 						Integer.parseInt(Interpreter.PARAM_KEEPER.rownum), 
 						Integer.parseInt(Interpreter.PARAM_KEEPER.colnum),
-						sourceFile);
+						sourceFile,
+						null, null);
 				} else {
 					// No source file available
 					newTable = TableManager.create(
 						Integer.parseInt(Interpreter.PARAM_KEEPER.rownum), 
-						Integer.parseInt(Interpreter.PARAM_KEEPER.colnum));
+						Integer.parseInt(Interpreter.PARAM_KEEPER.colnum),
+						null, null);
 				}
 
 				if (newTable != null) {
 					// 3. Need to add the new table to the user table collection, with the specified name.
-					Interpreter.CRATED_TABLES.put(Interpreter.PARAM_KEEPER.name, newTable);
+					Interpreter.CREATED_TABLES.put(Interpreter.PARAM_KEEPER.name, newTable);
 				} else {
 					// Error message
 					System.out.println("E: can't create table.");
@@ -588,7 +587,7 @@ public abstract class Interpreter {
 				// Then it's not a special case to be handled.
 				
 				// Get the user specified table
-				List<List<Double>> selectedTable = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.name);
+				OkapiTable<Double> selectedTable = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.name);
 				
 				// Checks if specified table, to be worked on, exists				
 				if (selectedTable != null) {
@@ -658,10 +657,10 @@ public abstract class Interpreter {
 			}
 
 			// Get the A operand
-			List<List<Double>> matrixOperandA = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.a);
+			OkapiTable<Double> matrixOperandA = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.a);
 
 			// Get the B operand
-			List<List<Double>> matrixOperandB = Interpreter.CRATED_TABLES.get(Interpreter.PARAM_KEEPER.b);
+			OkapiTable<Double> matrixOperandB = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.b);
 
 			// Check if specified table, to be worked on, exists				
 			if (matrixOperandA != null && matrixOperandB != null) {
@@ -670,7 +669,7 @@ public abstract class Interpreter {
 				Object safetyDummy = correctMethod.invoke(null, matrixOperandA, matrixOperandB);
 
 				// Check if dummy object is a list type
-				List<List<Double>> matrixOperandR = (safetyDummy instanceof List) ? ((List<List<Double>>) safetyDummy) : null;
+				OkapiTable<Double> matrixOperandR = (safetyDummy instanceof OkapiTable) ? ((OkapiTable<Double>) safetyDummy) : null;
 
 				// Check if everything is fine with the resultant matrix
 				if (matrixOperandR != null){
@@ -682,7 +681,7 @@ public abstract class Interpreter {
 					} else {
 						if (Interpreter.PARAM_KEEPER.r != null) {
 							// User gives a table name to store result value, store the table
-							Interpreter.CRATED_TABLES.put(Interpreter.PARAM_KEEPER.r, matrixOperandR);
+							Interpreter.CREATED_TABLES.put(Interpreter.PARAM_KEEPER.r, matrixOperandR);
 						} 
 
 						if (Interpreter.PARAM_KEEPER.file != null) {
@@ -835,5 +834,6 @@ public abstract class Interpreter {
 			System.out.print("> ");
 			Interpreter.getInput();
 		}
+		System.exit(0);
 	}
 }

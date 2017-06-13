@@ -1,6 +1,7 @@
 package plotsOkapiPack;
 // -----------------------------------------
 // IMPORT SECTION
+import generalOkapiPack.OkapiTable;
 // 1. Swing 
 import javax.swing.UIManager;
 import javax.swing.JButton;
@@ -744,7 +745,8 @@ public abstract class GeneralPlot {
 	* Automatically adjust plot visual parameters to the given table.
 	* @Throws NullPointerException, if given table does not have any valid element.
 	*/
-	public static void adjustParametersToTable(List<List<Double>> sourceTable) throws NullPointerException, IllegalArgumentException {
+	public static void adjustParametersToTable(OkapiTable<Double> userTable) throws NullPointerException, IllegalArgumentException {
+		List<List<Double>> sourceTable = userTable.getUserTable();
 		// Verify if given table is a valid plotting table
 		if (sourceTable == null || sourceTable.size() == 0 || 
 			sourceTable.get(0) == null || sourceTable.get(0).size() == 0)

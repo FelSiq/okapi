@@ -23,7 +23,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* @Return A ArrayList of ArrayLists of Double values
 	* @Throws No exception.
 	*/
-	public static List<List<Double>> create(int rowNum, int colNum) {
+	public static OkapiTable<Double> create(int rowNum, int colNum, List<String> rowNames, List<String> colNames) {
 		try {
 			// Init given Table
 			List<List<Double>> table = new ArrayList<List<Double>>(rowNum);
@@ -33,8 +33,11 @@ public abstract class TableManager extends GeneralOkapi {
 				table.add(new ArrayList<Double>(colNum));
 			}
 
-			// Return
-			return table;
+			// 
+			OkapiTable<Double> newTable = new OkapiTable<Double>(table, rowNames, colNames);
+
+			// Return OkapiTable
+			return newTable;
 		} catch (IllegalArgumentException iae) {
 			System.out.println(iae.getMessage());
 		}
@@ -48,9 +51,10 @@ public abstract class TableManager extends GeneralOkapi {
 	* @Return A ArrayList of Arraylists of Double values.
 	* @Throws No exception.
 	*/
-	public static List<List<Double>> create(int rowNum, int colNum, File inputFile) {
-		List<List<Double>> table = TableManager.create(rowNum, colNum);
+	public static OkapiTable<Double> create(int rowNum, int colNum, File inputFile, List<String> rowNames, List<String> colNames) {
 		try {
+			OkapiTable<Double> userTable = TableManager.create(rowNum, colNum, rowNames, colNames);
+			List<List<Double>> table = userTable.getUserTable();
 			// Auxiliary instances
 			FileReader fileReader = new FileReader(inputFile);
 			Scanner myInput = new Scanner(inputFile);
@@ -67,7 +71,7 @@ public abstract class TableManager extends GeneralOkapi {
 			myInput.close();
 
 			// Return created table
-			return table;
+			return userTable;
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
 		} catch (IOException ioe) {
@@ -80,8 +84,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* Add a new row on the table and fill up with zeros.
 	* @Throws No exception.
 	*/
-	public static void addRow(List<List<Double>> table) {
+	public static void addRow(OkapiTable<Double> userTable) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			// Check the column size
 			int columnSize = table.size() > 0 ? table.get(0).size() : 1;
 
@@ -107,8 +114,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* table with zeros.
 	* @Throws No exception.
 	*/
-	public static void addRow(List<List<Double>> table, File inputFile) {
+	public static void addRow(OkapiTable<Double> userTable, File inputFile) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			// Check the column size
 			int columnSize = table.size() > 0 ? table.get(0).size() : 1;
 
@@ -142,8 +152,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* Add a new column on the table and fill up with zeros.
 	* @Throws No exception.
 	*/
-	public static void addCol(List<List<Double>> table) {
+	public static void addCol(OkapiTable<Double> userTable) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			// If there's no rows at all, creates the first row
 			if (table.isEmpty()) {
 				table.add(new ArrayList<Double>());
@@ -167,8 +180,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* positions with zeros.
 	* @Throws No exception.
 	*/
-	public static void addCol(List<List<Double>> table, File inputFile) {
+	public static void addCol(OkapiTable<Double> userTable, File inputFile) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			// If there's no rows at all, creates the first row
 			if (table.isEmpty()) {
 				table.add(new ArrayList<Double>());
@@ -200,8 +216,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the last row on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remRow(List<List<Double>> table) {
+	public static void remRow(OkapiTable<Double> userTable) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			if (!table.isEmpty())
 				table.remove(table.size() - 1);
 		} catch (NullPointerException npe) {
@@ -215,8 +234,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove a entire row with given index on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remRow(List<List<Double>> table, int index) {
+	public static void remRow(OkapiTable<Double> userTable, int index) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			table.remove(index);
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
@@ -229,8 +251,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the last column on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remCol(List<List<Double>> table) {
+	public static void remCol(OkapiTable<Double> userTable) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			for (int i = 0; i < table.size(); i++) {
 				table.get(i).remove(table.get(i).size() - 1);
 				if (table.get(i).isEmpty())
@@ -247,8 +272,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the column with given index on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remCol(List<List<Double>> table, int index) {
+	public static void remCol(OkapiTable<Double> userTable, int index) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			for (int i = 0; i < table.size(); i++) {
 				table.get(i).remove(index);
 				if (table.get(i).isEmpty())
@@ -265,8 +293,11 @@ public abstract class TableManager extends GeneralOkapi {
 	* Calls toString() method to every List of the given List of Lists.
 	* @Throws No exception.
 	*/
-	public static void print(List<List<Double>> table) {
+	public static void print(OkapiTable<Double> userTable) {
 		try {
+			//
+			List<List<Double>> table = userTable.getUserTable();
+
 			for (int i = 0; i < table.size(); i++) {
 				System.out.println(table.get(i).toString());
 			}
@@ -274,19 +305,4 @@ public abstract class TableManager extends GeneralOkapi {
 			System.out.println(npe.getMessage());
 		}
 	}
-
-	/**
-	* Not finalized.
-	* To be removed.
-	*/
-	public static void main(String[] args) {
-		Scanner auxScan = new Scanner(System.in);
-		File auxFile = new File(auxScan.next());
-		ArrayList<List<Double>> aux = (ArrayList<List<Double>>) TableManager.create(2, 3, auxFile);
-		print(aux);
-
-		// Lacks System.in support
-
-		auxScan.close();
-	}	
 }

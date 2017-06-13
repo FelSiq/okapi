@@ -1,6 +1,7 @@
 package plotsOkapiPack;
 // -------------------------------------------------
 // IMPORT SECTION
+import generalOkapiPack.OkapiTable;
 // 1. Drawing
 import java.awt.image.BufferedImage;
 import java.awt.BasicStroke;
@@ -42,7 +43,7 @@ public class PlotBox extends GeneralPlot {
 	/**
 	* Setup up GeneralPlot parameters do this plot style.
 	*/
-	public static void setupPlotBox(List<List<Double>> dataTable, Color userColor) {
+	public static void setupPlotBox(OkapiTable<Double> dataTable, Color userColor) {
 		// Set up stuff related to PlotBox, if needed.
 		GeneralPlot.setAxis(true);
 
@@ -68,7 +69,7 @@ public class PlotBox extends GeneralPlot {
 	/**
 	* Print stuff specific to this plot style.
 	*/
-	private static void plot(List<List<Double>> dataTable, Color userColor) {
+	private static void plot(OkapiTable<Double> dataTable, Color userColor) {
 		// ---------------------------------------------------
 		// SETUP SECTION
 		// Get the plotting space dimensions
@@ -81,7 +82,7 @@ public class PlotBox extends GeneralPlot {
 			dataTableClone.add(cloneItem);
 
 		// Sort clone table.
-		dataTableClone.sort(new Comparator<Double>() {
+		Collections.sort(dataTableClone, new Comparator<Double>() {
 			@Override
 			public int compare(Double a, Double b) {
 				return a.compareTo(b);

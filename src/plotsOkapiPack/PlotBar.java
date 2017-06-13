@@ -1,5 +1,6 @@
 package plotsOkapiPack;
 // -------------------------------------------------
+import generalOkapiPack.OkapiTable;
 // IMPORT SECTION
 import java.awt.image.BufferedImage;
 import java.awt.Color;
@@ -24,7 +25,7 @@ public class PlotBar extends GeneralPlot {
 	/**
 	* Setup up GeneralPlot parameters do this plot style.
 	*/
-	public static void setupPlotBar(List<List<Double>> dataTable, Color userColor) {
+	public static void setupPlotBar(OkapiTable<Double> dataTable, Color userColor) {
 		// Set up stuff related to PlotBar, if needed.
 		GeneralPlot.setAxis(true);
 	}
