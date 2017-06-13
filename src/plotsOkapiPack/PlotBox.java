@@ -43,7 +43,7 @@ public class PlotBox extends GeneralPlot {
 	/**
 	* Setup up GeneralPlot parameters do this plot style.
 	*/
-	public static void setupPlotBox(OkapiTable<Double> dataTable, Color userColor) {
+	public static void setupPlotBox(OkapiTable<Double> userTable, Color userColor) {
 		// Set up stuff related to PlotBox, if needed.
 		GeneralPlot.setAxis(true);
 
@@ -54,7 +54,7 @@ public class PlotBox extends GeneralPlot {
 		GeneralPlot.setXAxisOffset(175);
 
 		// Prepare Boxplot image
-		PlotBox.plot(dataTable, userColor);
+		PlotBox.plot(userTable, userColor);
 	}
 
 	/**
@@ -69,9 +69,10 @@ public class PlotBox extends GeneralPlot {
 	/**
 	* Print stuff specific to this plot style.
 	*/
-	private static void plot(OkapiTable<Double> dataTable, Color userColor) {
+	private static void plot(OkapiTable<Double> userTable, Color userColor) {
 		// ---------------------------------------------------
 		// SETUP SECTION
+		List<List<Double>> dataTable = userTable.getUserTable();
 		// Get the plotting space dimensions
 		Integer bgDim = GeneralPlot.getBackgroundDim();
 		
