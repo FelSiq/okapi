@@ -18,8 +18,17 @@ import java.util.List;
 */
 public class PlotBox extends GeneralPlot {
 	// -------------------------------------------------
+	// CONSTANTS SECTON
+	private static final int BOX_HEIGHT = 80;
+
+	private static final int BOX_OFFSET = GeneralPlot.getBackgroundDim()/2 + 20;
+
+	private static final int BOX_TEXTOFFSET = 60;
+
+	// -------------------------------------------------
 	// VARIABLES SECTION
 	private static BufferedImage plotImage;
+
 	// -------------------------------------------------
 	// CLASS CONSTRUCTOR
 	public PlotBox() {
@@ -49,9 +58,9 @@ public class PlotBox extends GeneralPlot {
 	*
 	*/
 	private static Double getQuartile(int quartile, List<Double> values) {
-		Double aux = ((double) quartile * ((double) values.size() + 1.0))/4.0;
+		Double aux = ((double) values.size()) * ((double) quartile / 4.0);
 		Integer k = aux.intValue();
-		return values.get(k) + (aux - k)*(values.get(k + 1));
+		return (values.get(k) + ((Math.abs(aux - k) < GeneralPlot.FLOAT_EQUIVALENCE) ? values.get(k - 1) : values.get(k))) / 2.0;
 	}
 
 	/**
@@ -59,6 +68,9 @@ public class PlotBox extends GeneralPlot {
 	*/
 	private static void plot(List<List<Double>> dataTable) {
 		// Do individual plot stuff
+		// ---------------------------------------------------
+		// SETUP SECTION
+		// 
 		Integer bgDim = GeneralPlot.getBackgroundDim();
 		
 		// 
@@ -78,16 +90,32 @@ public class PlotBox extends GeneralPlot {
 
 		System.out.println(dataTableClone.toString());
 
+		// ---------------------------------------------------
+		// CALCULUS SECTION
 		// 
-		Double minOutlier = 0.0; 
 		Double minValue = Collections.min(dataTableClone);
 		Double fstQuartile = getQuartile(1, dataTableClone);
 		Double sndQuartile = getQuartile(2, dataTableClone);
 		Double trdQuartile = getQuartile(3, dataTableClone);
 		Double maxValue = Collections.max(dataTableClone);
-		Double maxOutlier = 0.0; 
 
-		System.out.println(fstQuartile + "/"+sndQuartile + "/"+trdQuartile);
+		// 
+		Integer minValueXPosition = getXPosition(minValue).intValue();
+		Integer fstQuartileXPosition = getXPosition(fstQuartile).intValue();
+		Integer sndQuartileXPosition = getXPosition(sndQuartile).intValue();
+		Integer trdQuartileXPosition = getXPosition(trdQuartile).intValue();
+		Integer maxValueXPosition = getXPosition(maxValue).intValue();
+
+		// 
+		Double interQuartileRange = (trdQuartile - fstQuartile);
+		Double minOutlier = fstQuartile - 1.5 * interQuartileRange; 
+		Double maxOutlier = trdQuartile + 1.5 * interQuartileRange; 
+
+		// 
+		Integer minOutlierXPosition = getXPosition(minOutlier).intValue();
+		Integer maxOutlierXPosition = getXPosition(maxOutlier).intValue();
+
+
 		// 
 		PlotBox.plotImage = new BufferedImage(
 			bgDim, bgDim, BufferedImage.TYPE_4BYTE_ABGR);
@@ -95,12 +123,54 @@ public class PlotBox extends GeneralPlot {
 		// 
 		Graphics g = plotImage.getGraphics();
 		g.setColor(Color.BLACK);
-		System.out.println(((Double) ((bgDim) * (fstQuartile/maxValue))).intValue());
-		System.out.println(((Double) ((bgDim) * (trdQuartile/maxValue))).intValue());
+
+		// 
 		g.drawRect(
-			bgDim/2 - ((Double) ((bgDim) * ((fstQuartile  - minValue)/(maxValue - minValue)))).intValue(), 
-			bgDim/2, 
-			((Double) ((bgDim) * ((trdQuartile - minValue)/(maxValue - minValue)))).intValue(), 
-			60);
+			fstQuartileXPosition, 
+			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
+			trdQuartileXPosition - fstQuartileXPosition, 
+			PlotBox.BOX_HEIGHT);
+
+		// ---------------------------------------------------
+		// LINE SECTION
+		// 
+		g.drawLine(minValueXPosition, 
+			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
+			minValueXPosition, 
+			PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
+		// 
+		g.drawLine(sndQuartileXPosition, 
+			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
+			sndQuartileXPosition, 
+			PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
+		// 
+		g.drawLine(maxValueXPosition, 
+			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
+			maxValueXPosition, 
+			PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
+		//		
+		g.drawLine(minValueXPosition, 
+			PlotBox.BOX_OFFSET, 
+			fstQuartileXPosition, 
+			PlotBox.BOX_OFFSET);
+		// 
+		g.drawLine(trdQuartileXPosition, 
+			PlotBox.BOX_OFFSET, 
+			maxValueXPosition, 
+			PlotBox.BOX_OFFSET);
+
+		// ---------------------------------------------------
+		// TEXT SECTION
+		// 
+		g.drawString((minValue < minOutlier ? "(outlier)\n" : "") + "(min)\n" + minValue.toString(), minValueXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+		g.drawString((maxValue > maxOutlier ? "(outlier)\n" : "") + "(max)\n" + maxValue.toString(), maxValueXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+		g.drawString("(Q1)\n" + fstQuartile.toString(), fstQuartileXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+		g.drawString("(Q2)\n" + sndQuartile.toString(), sndQuartileXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+		g.drawString("(Q3)\n" + trdQuartile.toString(), trdQuartileXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+
+		if (minValue < minOutlier)
+			g.drawString("(min)\n" + minOutlier.toString(), minOutlierXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
+		if (maxValue > maxOutlier)
+			g.drawString("(max)\n" + maxOutlier.toString(), maxOutlierXPosition, PlotBox.BOX_OFFSET - PlotBox.BOX_TEXTOFFSET);
 	}
 }

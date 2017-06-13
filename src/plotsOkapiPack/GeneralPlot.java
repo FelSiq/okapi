@@ -360,8 +360,28 @@ public abstract class GeneralPlot {
 	// METHODS SECTION
 
 	/**
-	* 
-	* @Return 
+	* Convert a given x value to the right position of the plotting section.
+	* @Return Right plotting (screen) position of a given x value.
+	* @Throws No exception.
+	*/
+	public static Double getXPosition(double xValue) {
+		return MakeAxis.X_AXIS_X1 + ((MakeAxis.X_AXIS_X2 - MakeAxis.X_AXIS_X1) * 
+					((xValue - GeneralPlot.plot_xlim_min) / (GeneralPlot.plot_xlim_max  - GeneralPlot.plot_xlim_min)));
+	}
+
+	/**
+	* Convert a given y value to the right position of the plotting section.
+	* @Return Right plotting (screen) position of a given y value.
+	* @Throws No exception.
+	*/
+	public static Double getYPosition(double yValue) {
+		return MakeAxis.Y_AXIS_Y1 + ((MakeAxis.Y_AXIS_Y2 - MakeAxis.Y_AXIS_Y1) * 
+					((yValue - GeneralPlot.plot_ylim_min) / (GeneralPlot.plot_ylim_max  - GeneralPlot.plot_ylim_min)));
+	}
+
+	/**
+	* (Getter) Get the background width-breadth dimension of the plotting section 
+	* @Return Background width-breadth square plotting section.
 	* @Throws No exception.
 	*/
 	public static Integer getBackgroundDim() {
@@ -517,17 +537,17 @@ public abstract class GeneralPlot {
 		// Add funcionality on the Save button
 		bSave.addActionListener(new ActionListener () {
 			public void actionPerformed(ActionEvent ae) {
-				// 
+				// Create a buffered image to keep the graphic
 				BufferedImage outputImage = new BufferedImage(
 					mainPanel.getWidth(), 
 					mainPanel.getHeight(),
 					BufferedImage.TYPE_INT_RGB);
-				// 
+				// Output the current mainPanel (graphic itself) to the brand-new image
 				Graphics g = outputImage.createGraphics();
 				mainPanel.paint(g);
-				// 
+				// Try to create a resultant output file
 				try {
-					// 
+					// The default name is the plot name
 					File outputFile = new File(GeneralPlot.plot_title.replaceAll("\\s+", "") + ".jpg");
 
 					// If file already exists, use a counter to set up a sightly modified name
@@ -536,7 +556,8 @@ public abstract class GeneralPlot {
 						outputFile = new File(GeneralPlot.plot_title.replaceAll("\\s+", "") + counter + ".jpg");
 						counter++;
 					} 
-					// 
+
+					// Create the output file with .jpg extension by default
 					ImageIO.write(outputImage, "JPEG", outputFile);
 				} catch (IOException e) {
 					System.out.println(e.getMessage());
