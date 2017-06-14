@@ -85,20 +85,20 @@ public class PlotBox extends GeneralPlot {
 	private static void plot(OkapiTable<Double> userTable, Color userColor) {
 		// ---------------------------------------------------
 		// SETUP SECTION
-		List<List<Double>> dataTable = userTable.getUserTable();
+		final List<List<Double>> dataTable = userTable.getUserTable();
 		// Get the plotting space dimensions
-		Integer bgDim = GeneralPlot.getBackgroundDim();
+		final Integer bgDim = GeneralPlot.getBackgroundDim();
 		
 		// Clone user table (because boxplot need to sort it, and we don't want
 		// to move user's stuff around).
-		List<Double> dataTableClone = new ArrayList<Double>();
+		final List<Double> dataTableClone = new ArrayList<Double>();
 
 		// Verify if this is a horizontal or vertical vector
 		if (dataTable.size() == 1) {
 			for (Double cloneItem : dataTable.get(0))
 				dataTableClone.add(cloneItem);
 		} else {
-			System.out.println("W: plotting the first column of the given table.");
+			GeneralPlot.verticalTableWarning();
 			for (List<Double> traveller : dataTable) {
 				dataTableClone.add(traveller.get(0));
 			}
@@ -117,23 +117,23 @@ public class PlotBox extends GeneralPlot {
 			bgDim, bgDim, BufferedImage.TYPE_4BYTE_ABGR);
 
 		// Creates the basis drawer of this plot
-		Graphics2D g = (Graphics2D) plotImage.getGraphics();
+		final Graphics2D g = (Graphics2D) plotImage.getGraphics();
 
 		// ---------------------------------------------------
 		// CALCULUS SECTION
 		// Basic values for boxplot
 		Double minValue = Collections.min(dataTableClone);
-		Double fstQuartile = getQuartile(1, dataTableClone);
-		Double sndQuartile = getQuartile(2, dataTableClone);
-		Double trdQuartile = getQuartile(3, dataTableClone);
+		Double fstQuartile = PlotBox.getQuartile(1, dataTableClone);
+		Double sndQuartile = PlotBox.getQuartile(2, dataTableClone);
+		Double trdQuartile = PlotBox.getQuartile(3, dataTableClone);
 		Double maxValue = Collections.max(dataTableClone);
 
 		// Calculate the right screen position of each piece
-		Integer minValueXPosition = getXPosition(minValue).intValue();
-		Integer fstQuartileXPosition = getXPosition(fstQuartile).intValue();
-		Integer sndQuartileXPosition = getXPosition(sndQuartile).intValue();
-		Integer trdQuartileXPosition = getXPosition(trdQuartile).intValue();
-		Integer maxValueXPosition = getXPosition(maxValue).intValue();
+		Integer minValueXPosition = GeneralPlot.getXPosition(minValue).intValue();
+		Integer fstQuartileXPosition = GeneralPlot.getXPosition(fstQuartile).intValue();
+		Integer sndQuartileXPosition = GeneralPlot.getXPosition(sndQuartile).intValue();
+		Integer trdQuartileXPosition = GeneralPlot.getXPosition(trdQuartile).intValue();
+		Integer maxValueXPosition = GeneralPlot.getXPosition(maxValue).intValue();
 
 		// IQR and outliers threshold stuff
 		Double interQuartileRange = (trdQuartile - fstQuartile);
@@ -141,8 +141,8 @@ public class PlotBox extends GeneralPlot {
 		Double maxOutlier = trdQuartile + 1.5 * interQuartileRange; 
 
 		// Calculate the outliers threshold screen position
-		Integer minOutlierXPosition = getXPosition(minOutlier).intValue();
-		Integer maxOutlierXPosition = getXPosition(maxOutlier).intValue();
+		Integer minOutlierXPosition = GeneralPlot.getXPosition(minOutlier).intValue();
+		Integer maxOutlierXPosition = GeneralPlot.getXPosition(maxOutlier).intValue();
 
 		// ---------------------------------------------------
 		// PAINT SECTION

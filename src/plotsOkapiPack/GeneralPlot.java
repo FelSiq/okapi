@@ -825,4 +825,26 @@ public abstract class GeneralPlot {
 			GeneralPlot.setYLimits(0.0, 0.0);
 		}
 	}
+
+	/**
+	* Give user a warning, if given table is a vertical one instead of a horizontal one.
+	*
+	* Horizontal table is something like:
+	*	x -> [x1, x2, x3, ..., xn]
+	*	y -> [y1, y2, y3, ..., yn]
+	*
+	* Vertical table is something like:
+	*	x	y
+	*	\/	\/
+	*  [x1][y1]
+	*  [x2][y2]
+	*  [x3][y3]
+	*  ... ...
+	*  [xn][yn]
+	*
+	* @Throws No exceptions.
+	*/
+	public static void verticalTableWarning() {
+		System.out.print("W: Interpreting the first column of the table as the X values.\n> ");
+	}
 } 

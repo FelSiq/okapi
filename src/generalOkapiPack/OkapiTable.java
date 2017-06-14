@@ -70,7 +70,7 @@ public class OkapiTable<T> {
 	/**
 	* 
 	*/
-	public int getRowNum() {
+	public int getColNum() {
 		try {
 			return this.userTable.get(0).size();
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
@@ -82,7 +82,7 @@ public class OkapiTable<T> {
 	/**
 	* 
 	*/
-	public int getColNum() {
+	public int getRowNum() {
 		try {
 			return this.userTable.size();
 		} catch (NullPointerException e) {
