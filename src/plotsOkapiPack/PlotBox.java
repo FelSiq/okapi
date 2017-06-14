@@ -92,8 +92,17 @@ public class PlotBox extends GeneralPlot {
 		// Clone user table (because boxplot need to sort it, and we don't want
 		// to move user's stuff around).
 		List<Double> dataTableClone = new ArrayList<Double>();
-		for (Double cloneItem : dataTable.get(0))
-			dataTableClone.add(cloneItem);
+
+		// Verify if this is a horizontal or vertical vector
+		if (dataTable.size() == 1) {
+			for (Double cloneItem : dataTable.get(0))
+				dataTableClone.add(cloneItem);
+		} else {
+			System.out.println("W: plotting the first column of the given table.");
+			for (List<Double> traveller : dataTable) {
+				dataTableClone.add(traveller.get(0));
+			}
+		}
 
 		// Sort clone table.
 		Collections.sort(dataTableClone, new Comparator<Double>() {
