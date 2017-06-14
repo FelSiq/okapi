@@ -154,8 +154,8 @@ public abstract class Interpreter {
 			try {
 				for (Field k : InterpreterParameters.class.getDeclaredFields())
 					k.set(this, null);
-			} catch (IllegalAccessException iae) {
-				System.out.println(iae.getMessage());
+			} catch (IllegalAccessException | NullPointerException e) {
+				System.out.println(e.getMessage());
 			}
 		}
 	}
@@ -170,7 +170,12 @@ public abstract class Interpreter {
 		* @Return New processed String.
 		*/
 		private static String toCanonical(String unprocessedUserInput) {
-			return unprocessedUserInput.toLowerCase().replaceAll("[^" + Interpreter.PERMITED_CHARACTERS + "\\s]", "").replaceAll("\\s+", " ");
+			try {
+				return unprocessedUserInput.toLowerCase().replaceAll("[^" + Interpreter.PERMITED_CHARACTERS + "\\s]", "").replaceAll("\\s+", " ");
+			} catch (NullPointerException e) {
+				System.out.println(e.getMessage());
+			}
+			return null;
 		}
 
 		/**

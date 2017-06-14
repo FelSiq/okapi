@@ -38,7 +38,11 @@ public class PlotDot extends GeneralPlot {
 		GeneralPlot.setAxis(true);
 
 		// Call plot method and prepare the graphic image
-		PlotDot.plot(dataTable, userColor);
+		if (dataTable != null) {
+			PlotDot.plot(dataTable, userColor);
+		} else {
+			System.out.println("E: invalid table to Boxplot.");
+		}
 	}
 
 	/**
