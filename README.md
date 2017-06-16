@@ -17,9 +17,9 @@ http://docs.oracle.com/javase/tutorial/uiswing/
 ## Part 1: Plots
 - [ ] Bars
 - [ ] Pie
-- [ ] Line
+- [x] Line
 - [x] Boxplot
-- [ ] Dots
+- [x] Dots
 
 ## Part 2: General
 - [x] Arithmetic
