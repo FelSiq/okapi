@@ -829,16 +829,4 @@ public abstract class Interpreter {
 		}
 		return false;
 	}
-
-	/**
-	* For test purpose. Should not exists on final version.
-	*/
-	public static void main(String[] args) {
-		Interpreter.compile();
-		while(!Interpreter.programEnds()) {
-			System.out.print("> ");
-			Interpreter.getInput();
-		}
-		System.exit(0);
-	}
 }

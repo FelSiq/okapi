@@ -11,7 +11,7 @@ http://docs.oracle.com/javase/tutorial/uiswing/
 :)
 
 ## Part 0:
-- [ ] Main User Interface
+- [x] Main User Interface
 - [x] Command Interpreter
 
 ## Part 1: Plots

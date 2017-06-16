@@ -247,7 +247,7 @@ public class HelpSystem {
 
 	/**
 	* Search on the help system the given function, and display its information, if found.
-	* Displays a error message if the given function was not found in the Okapi help XML document.
+	* Display an error message if the given function was not found in the Okapi help XML document.
 	*/
 	public HelpSystem(String function) {
 		this.matched = this.search(function); 
