@@ -80,10 +80,10 @@ public abstract class Interpreter {
 	// Subdependencies (obligatory just for "create" operation) parameters of "create" operation, in "table" command 
 	private static final String[] TABLE_OP_CREATE_SUBDEPENDENCIES = {"rownum", "colnum"};
 
-	// 
+	// Subdependencies of index-relative table operations
 	private static final String[] TABLE_OP_INDEX_SUBDEPENDENCIES = {"index"};
 
-	// 
+	// Subdependencies of file-relative table operations
 	private static final String[] TABLE_OP_FILE_SUBDEPENDENCIES = {"file"};
 
 	// Dependencies (requested parameters) of "plot" command
@@ -301,8 +301,13 @@ public abstract class Interpreter {
 					Interpreter.PARAM_KEEPER.title : Interpreter.PARAM_KEEPER.table);
 
 				// 3. Axes labels
-				GeneralPlot.setXAxisLabel(Interpreter.PARAM_KEEPER.xlab); // x-axis
-				GeneralPlot.setYAxisLabel(Interpreter.PARAM_KEEPER.ylab); // y-axis
+				if (Interpreter.PARAM_KEEPER.xlab == null && Interpreter.PARAM_KEEPER.ylab == null) {
+					// If user does not specify the axis labels, then get from the table
+					GeneralPlot.loadTableAxisLabels(Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.table));
+				} else {
+					GeneralPlot.setXAxisLabel(Interpreter.PARAM_KEEPER.xlab); // x-axis
+					GeneralPlot.setYAxisLabel(Interpreter.PARAM_KEEPER.ylab); // y-axis
+				}
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}

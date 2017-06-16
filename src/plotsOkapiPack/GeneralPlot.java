@@ -740,7 +740,20 @@ public abstract class GeneralPlot {
 	public static String getTitle() {
 		return GeneralPlot.plot_title;
 	}
-	
+
+	/**
+	* Load the row/column names into the axis labels.
+	*/
+	public static void loadTableAxisLabels(OkapiTable<Double> userTable) {
+		if (userTable.getRowNum() <= 2) {
+			GeneralPlot.plot_axis_xlabel = userTable.getRowName(0);
+			GeneralPlot.plot_axis_ylabel = userTable.getRowName(1);
+		} else {
+			GeneralPlot.plot_axis_xlabel = userTable.getColName(0);
+			GeneralPlot.plot_axis_ylabel = userTable.getColName(1);
+		}
+	}
+
 	/**
 	* Automatically adjust plot visual parameters to the given table.
 	* @Throws NullPointerException, if given table does not have any valid element.

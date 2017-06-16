@@ -60,8 +60,8 @@ public abstract class TableManager extends GeneralOkapi {
 			
 			// Fill up created table from given file
 			for (int i = 0; i < rowNum; i++) {
-				newTable.addColName("Col" + newTable.getColNum());
 				for (int j = 0; j < colNum; j++) {
+					newTable.addColName("Col" + newTable.getColNum());
 					table.get(i).add((myInput.hasNextDouble() || inputFile.equals(System.in)) ? myInput.nextDouble() : 0.0);
 				}
 			}
