@@ -23,18 +23,17 @@ public abstract class TableManager extends GeneralOkapi {
 	* @Return A ArrayList of ArrayLists of Double values
 	* @Throws No exception.
 	*/
-	public static OkapiTable<Double> create(int rowNum, int colNum, List<String> rowNames, List<String> colNames) {
+	public static OkapiTable<Double> create(int rowNum, int colNum) {
 		try {
 			// Init given Table
 			List<List<Double>> table = new ArrayList<List<Double>>(rowNum);
+			OkapiTable<Double> newTable = new OkapiTable<Double>(table);
 			
 			// Fill up brand-new table 
 			while (table.size() < rowNum) {
+				newTable.addRowName("Row" + newTable.getRowNum());
 				table.add(new ArrayList<Double>(colNum));
 			}
-
-			// 
-			OkapiTable<Double> newTable = new OkapiTable<Double>(table, rowNames, colNames);
 
 			// Return OkapiTable
 			return newTable;
@@ -51,16 +50,17 @@ public abstract class TableManager extends GeneralOkapi {
 	* @Return A ArrayList of Arraylists of Double values.
 	* @Throws No exception.
 	*/
-	public static OkapiTable<Double> create(int rowNum, int colNum, File inputFile, List<String> rowNames, List<String> colNames) {
+	public static OkapiTable<Double> create(int rowNum, int colNum, File inputFile) {
 		try {
-			OkapiTable<Double> userTable = TableManager.create(rowNum, colNum, rowNames, colNames);
-			List<List<Double>> table = userTable.getUserTable();
+			OkapiTable<Double> newTable = TableManager.create(rowNum, colNum);
+			List<List<Double>> table = newTable.getUserTable();
 			// Auxiliary instances
 			FileReader fileReader = new FileReader(inputFile);
 			Scanner myInput = new Scanner(inputFile);
 			
 			// Fill up created table from given file
 			for (int i = 0; i < rowNum; i++) {
+				newTable.addColName("Col" + newTable.getColNum());
 				for (int j = 0; j < colNum; j++) {
 					table.get(i).add((myInput.hasNextDouble() || inputFile.equals(System.in)) ? myInput.nextDouble() : 0.0);
 				}
@@ -71,7 +71,7 @@ public abstract class TableManager extends GeneralOkapi {
 			myInput.close();
 
 			// Return created table
-			return userTable;
+			return newTable;
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
 		} catch (IOException ioe) {
@@ -84,7 +84,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Add a new row on the table and fill up with zeros.
 	* @Throws No exception.
 	*/
-	public static void addRow(OkapiTable<Double> userTable) {
+	public static void addemptyrow(OkapiTable<Double> userTable) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
@@ -98,8 +98,11 @@ public abstract class TableManager extends GeneralOkapi {
 			table.add(new ArrayList<Double>());
 
 			// Fill up all with zeros (default value)
-			while (table.get(table.size() - 1).size() < columnSize)
+			while (table.get(table.size() - 1).size() < columnSize) {
 				table.get(table.size() - 1).add(0.0);
+			}
+			// Set up row name
+			userTable.addRowName("Row" + userTable.getRowNum());
 
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
@@ -114,7 +117,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* table with zeros.
 	* @Throws No exception.
 	*/
-	public static void addRow(OkapiTable<Double> userTable, File inputFile) {
+	public static void addrow(OkapiTable<Double> userTable, File inputFile) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
@@ -132,8 +135,11 @@ public abstract class TableManager extends GeneralOkapi {
 			Scanner myInput = new Scanner(inputFile);
 
 			// Fill up all with values of the inputFile or zeros (default value)
-			while (table.get(table.size() - 1).size() < columnSize)
+			while (table.get(table.size() - 1).size() < columnSize) {
 				table.get(table.size() - 1).add((myInput.hasNextDouble() || inputFile.equals(System.in)) ? myInput.nextDouble() : 0.0);
+			}
+			// Set up row name
+			userTable.addRowName("Row" + userTable.getRowNum());
 
 			// Close openened file and scanner
 			fileReader.close();
@@ -152,7 +158,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* Add a new column on the table and fill up with zeros.
 	* @Throws No exception.
 	*/
-	public static void addCol(OkapiTable<Double> userTable) {
+	public static void addemptycol(OkapiTable<Double> userTable) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
@@ -166,6 +172,8 @@ public abstract class TableManager extends GeneralOkapi {
 			for (int i = 0; i < table.size(); i++) {
 				table.get(i).add(0.0);
 			}
+			// Set up column name
+			userTable.addColName("Col" + userTable.getColNum());
 
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
@@ -180,7 +188,7 @@ public abstract class TableManager extends GeneralOkapi {
 	* positions with zeros.
 	* @Throws No exception.
 	*/
-	public static void addCol(OkapiTable<Double> userTable, File inputFile) {
+	public static void addcol(OkapiTable<Double> userTable, File inputFile) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
@@ -199,6 +207,9 @@ public abstract class TableManager extends GeneralOkapi {
 				table.get(i).add((myInput.hasNextDouble() || inputFile.equals(System.in)) ? myInput.nextDouble() : 0.0);
 			}
 
+			// Set up Column name
+			userTable.addColName("Col" + userTable.getColNum());
+
 			// Close openened file and scanner
 			fileReader.close();
 			myInput.close();
@@ -216,13 +227,20 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the last row on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remRow(OkapiTable<Double> userTable) {
+	public static void remlastrow(OkapiTable<Double> userTable) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
 
-			if (!table.isEmpty())
+			// Remove the row name of this row
+			if (userTable.getRowNum() > 1){
+				userTable.remRowName(userTable.getRowNum() - 1);
+			} else System.out.println("E: this table is empty!");
+
+			if (!table.isEmpty()) {
+				userTable.remColName(userTable.getColNum() - 1);
 				table.remove(table.size() - 1);
+			}
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
 		} catch (IndexOutOfBoundsException ioobe) {
@@ -234,12 +252,15 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove a entire row with given index on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remRow(OkapiTable<Double> userTable, int index) {
+	public static void remrow(OkapiTable<Double> userTable, int index) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
 
-			table.remove(index);
+			if (userTable.getRowNum() > index && index >= 0) {
+				userTable.remRowName(index);
+				table.remove(index);
+			} else System.out.println("E: invalid row index!");
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
 		} catch (IndexOutOfBoundsException ioobe) {
@@ -251,15 +272,24 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the last column on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remCol(OkapiTable<Double> userTable) {
+	public static void remlastcol(OkapiTable<Double> userTable) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
 
+			// Remove the name of its column
+			if (userTable.getColNum() > 1) {
+				userTable.remColName(userTable.getColNum() - 1);
+			} else System.out.println("E: this table is empty!");
+
 			for (int i = 0; i < table.size(); i++) {
 				table.get(i).remove(table.get(i).size() - 1);
-				if (table.get(i).isEmpty())
+
+				// If this row is empty, remove it and it's name
+				if (table.get(i).isEmpty()) {
+					userTable.remRowName(i);
 					table.remove(i);
+				}
 			}
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
@@ -272,16 +302,26 @@ public abstract class TableManager extends GeneralOkapi {
 	* Remove the column with given index on the given table
 	* @Throws No exceptions.
 	*/
-	public static void remCol(OkapiTable<Double> userTable, int index) {
+	public static void remcol(OkapiTable<Double> userTable, int index) {
 		try {
 			//
 			List<List<Double>> table = userTable.getUserTable();
 
-			for (int i = 0; i < table.size(); i++) {
-				table.get(i).remove(index);
-				if (table.get(i).isEmpty())
-					table.remove(i);
-			}
+			// Remove the name of that column
+			if (userTable.getColNum() > index && index >= 0) {
+				userTable.remColName(index);
+
+				for (int i = 0; i < table.size(); i++) {
+					table.get(i).remove(index);
+
+					// If this row is empty, remove it and it's name
+					if (table.get(i).isEmpty()) {
+						userTable.remRowName(i);
+						table.remove(i);
+					}
+				}
+			} else System.out.println("E: invalid column index!");
+
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
 		} catch (IndexOutOfBoundsException ioobe) {
@@ -298,11 +338,60 @@ public abstract class TableManager extends GeneralOkapi {
 			//
 			List<List<Double>> table = userTable.getUserTable();
 
-			for (int i = 0; i < table.size(); i++) {
-				System.out.println(table.get(i).toString());
+			if (userTable.getColNum() > 0)
+				System.out.print("[    ]");
+
+			for (Integer i = 0; i < userTable.getColNum(); i++) {
+				String colName = userTable.getColName(i);
+				System.out.print("[" + (colName != null ? colName : i.toString()) + "]");
+			}
+
+			System.out.println();
+
+			for (Integer i = 0; i < table.size(); i++) {
+				String rowName = userTable.getRowName(i);
+				System.out.println("[" + (rowName != null ? rowName : i.toString()) + "]" + table.get(i).toString());
 			}
 		} catch (NullPointerException npe) {
 			System.out.println(npe.getMessage());
+		}
+	}
+
+	/**
+	* Set name of the columns on the table.
+	* @Throws No exception.
+	*/
+	public static void colname(OkapiTable<Double> userTable, File sourceFile) {
+		try {
+			FileReader fileInput = new FileReader(sourceFile);
+			Scanner scannerInput = new Scanner(fileInput);
+
+			for (int i = 0; i < userTable.getColNum() && scannerInput.hasNext(); i++) {
+				userTable.setColName(i, scannerInput.next());
+			}
+
+			scannerInput.close();
+		} catch (IOException | NullPointerException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	/**
+	* Set name of the rows on the table.
+	* @Throws No exception.
+	*/
+	public static void rowname(OkapiTable<Double> userTable, File sourceFile) {
+		try {
+			FileReader fileInput = new FileReader(sourceFile);
+			Scanner scannerInput = new Scanner(fileInput);
+
+			for (int i = 0; i < userTable.getRowNum() && scannerInput.hasNext(); i++) {
+				userTable.setRowName(i, scannerInput.next());
+			}
+
+			scannerInput.close();
+		} catch (IOException | NullPointerException e) {
+			System.out.println(e.getMessage());
 		}
 	}
 }

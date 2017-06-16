@@ -1,6 +1,7 @@
 package generalOkapiPack;
 // ------------------------------------------
 // IMPORT SECTION
+import java.util.ArrayList;
 import java.util.List;
 // ------------------------------------------
 
@@ -29,9 +30,18 @@ public class OkapiTable<T> {
 		try {
 			return this.userTable.get(y).get(x);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
-			System.out.println(e.getMessage());
+			System.out.println("E: can't get (" + x + ", " + y + ") element of this table!");
 		}
 		return null;
+	}
+
+	/**
+	* 
+	*/
+	public OkapiTable(List<List<T>> newUserTable) {
+		this.userTable = newUserTable;
+		this.rowName = new ArrayList<String>();
+		this.colName = new ArrayList<String>();
 	}
 
 	/**
@@ -48,9 +58,10 @@ public class OkapiTable<T> {
 	*/ 
 	public String getColName(int index) {
 		try {
-			return this.colName.get(index);
+			if (this.getColNum() > index)
+				return this.colName.get(index);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
-			System.out.println(e.getMessage());
+			//Do nothing, because can happens.
 		}
 		return null;
 	}
@@ -60,9 +71,10 @@ public class OkapiTable<T> {
 	*/ 
 	public String getRowName(int index) {
 		try {
-			return this.rowName.get(index);
+			if (this.getRowNum() > index)
+				return this.rowName.get(index);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
-			System.out.println(e.getMessage());
+			//Do nothing, because can happens.
 		}
 		return null;
 	}
@@ -94,11 +106,55 @@ public class OkapiTable<T> {
 	/**
 	* 
 	*/ 
+	public void addColName(String newColName) {
+		try {
+			this.colName.add(newColName);
+		} catch (NullPointerException | IndexOutOfBoundsException e) {
+			System.out.println("E: Can't add column name!");
+		}
+	}
+
+	/**
+	* 
+	*/ 
+	public void addRowName(String newRowName) {
+		try {
+			this.rowName.add(newRowName);
+		} catch (NullPointerException | IndexOutOfBoundsException e) {
+			System.out.println("E: Can't add row name!");
+		}
+	}
+
+	/**
+	* 
+	*/ 
+	public void remColName(int index) {
+		try {
+			this.colName.remove(index);
+		} catch (NullPointerException | IndexOutOfBoundsException e) {
+			System.out.println("E: Can't remove column name!");
+		}
+	}
+
+	/**
+	* 
+	*/ 
+	public void remRowName(int index) {
+		try {
+			this.rowName.remove(index);
+		} catch (NullPointerException | IndexOutOfBoundsException e) {
+			System.out.println("E: Can't remove row name!");
+		}
+	}
+
+	/**
+	* 
+	*/ 
 	public void setColName(int index, String newColName) {
 		try {
 			this.colName.set(index, newColName);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
-			System.out.println(e.getMessage());
+			System.out.println("E: Can't set column name!");
 		}
 	}
 
@@ -109,7 +165,7 @@ public class OkapiTable<T> {
 		try {
 			this.rowName.set(index, newRowName);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
-			System.out.println(e.getMessage());
+			System.out.println("E: Can't set row name!");
 		}
 	}
 }

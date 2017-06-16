@@ -78,7 +78,13 @@ public abstract class Interpreter {
 	private static final String[] TABLE_OP_DEPENDENCIES = {"operation", "name"};
 
 	// Subdependencies (obligatory just for "create" operation) parameters of "create" operation, in "table" command 
-	private static final String[] TABLE_OP_SUBDEPENDENCIES = {"rownum", "colnum"};
+	private static final String[] TABLE_OP_CREATE_SUBDEPENDENCIES = {"rownum", "colnum"};
+
+	// 
+	private static final String[] TABLE_OP_INDEX_SUBDEPENDENCIES = {"index"};
+
+	// 
+	private static final String[] TABLE_OP_FILE_SUBDEPENDENCIES = {"file"};
 
 	// Dependencies (requested parameters) of "plot" command
 	private static final String[] PLOT_OP_DEPENDENCIES = {"type", "table"};
@@ -142,7 +148,7 @@ public abstract class Interpreter {
 			operation, // Obligatory for both table and matrix
 			name, // Obligatory for table
 			file, // Input file for the table or output file for the resultant matrix.
-			index, 
+			index,
 			rownum, // Subdependencie: operation=init
 			colnum; // Subdependencie: operation=init
 		//---------------------------------------------
@@ -554,7 +560,7 @@ public abstract class Interpreter {
 
 			// If operation is "create", then this is a special case.
 			if (Interpreter.InterpreterAuxiliaryMethods.toCanonical(correctMethod.getName()).equals("create")) {
-				String notSatisfiedSubdependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_SUBDEPENDENCIES);
+				String notSatisfiedSubdependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_CREATE_SUBDEPENDENCIES);
 				if (notSatisfiedSubdependency != null) {
 					System.out.println("Warning: function parameters not fully satisfied, missing:"	
 						+ notSatisfiedSubdependency);
@@ -570,14 +576,12 @@ public abstract class Interpreter {
 					newTable = TableManager.create(
 						Integer.parseInt(Interpreter.PARAM_KEEPER.rownum), 
 						Integer.parseInt(Interpreter.PARAM_KEEPER.colnum),
-						sourceFile,
-						null, null);
+						sourceFile);
 				} else {
 					// No source file available
 					newTable = TableManager.create(
 						Integer.parseInt(Interpreter.PARAM_KEEPER.rownum), 
-						Integer.parseInt(Interpreter.PARAM_KEEPER.colnum),
-						null, null);
+						Integer.parseInt(Interpreter.PARAM_KEEPER.colnum));
 				}
 
 				if (newTable != null) {
@@ -588,6 +592,23 @@ public abstract class Interpreter {
 					System.out.println("E: can't create table.");
 				}
 			} else {
+				String correctMethodName = Interpreter.InterpreterAuxiliaryMethods.toCanonical(correctMethod.getName());
+				if (correctMethodName.equals("remcol") || correctMethodName.equals("remrow")) {
+						 notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_INDEX_SUBDEPENDENCIES);
+						if (notSatisfiedDependency != null) {
+							System.out.println("Warning: function parameters not fully satisfied, missing:" + 
+								notSatisfiedDependency);
+							return false;
+						}
+				} else if (correctMethodName.equals("addcol") || correctMethodName.equals("addrow") || 
+					correctMethodName.equals("colname") || correctMethodName.equals("rowname")) {
+						notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_FILE_SUBDEPENDENCIES);
+						if (notSatisfiedDependency != null) {
+							System.out.println("Warning: function parameters not fully satisfied, missing:" + 
+								notSatisfiedDependency);
+							return false;
+						}
+				}
 				// At this point, user command does not call "create" operation.
 				// Then it's not a special case to be handled.
 				
@@ -619,6 +640,7 @@ public abstract class Interpreter {
 			return true;
 		} catch (NullPointerException | IllegalAccessException | InvocationTargetException e) {
 			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 
 		//Return false by default

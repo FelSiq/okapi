@@ -82,7 +82,7 @@
 	<parameters>
 		<item>
 			<field>operation</field>
-			<description>Specify the operation to execute. Only "create" on this version.</description>
+			<description>Specify the operation to execute. Can be "create", "addrow", "addcol", "addemptyrow", "addemptycol", "remrow", "remcol", "remlastcol", "remlastrow", "colname", "rowname" and "print".</description>
 		</item>
 		<item>
 			<field>name</field>

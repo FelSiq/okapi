@@ -25,8 +25,8 @@ import java.awt.Color;
 
 // 4. Collections
 import java.util.Collections;
-import java.util.Set;
 import java.util.List;
+import java.util.Set;
 
 // 5. To output a plot image
 import javax.imageio.ImageIO;
@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.io.File;
 
 // To be deleted.
-import javax.swing.SwingUtilities;
+// import javax.swing.SwingUtilities;
 // -----------------------------------------
 
 /**
@@ -740,7 +740,7 @@ public abstract class GeneralPlot {
 	public static String getTitle() {
 		return GeneralPlot.plot_title;
 	}
-
+	
 	/**
 	* Automatically adjust plot visual parameters to the given table.
 	* @Throws NullPointerException, if given table does not have any valid element.
