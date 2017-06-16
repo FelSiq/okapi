@@ -1,0 +1,104 @@
+<func>
+	<name>commands</name>
+	<summary>List all available command of this program.</summary>
+</func>
+<func>
+	<name>exit</name>
+	<summary>Quit program, closing all windows.</summary>
+</func>
+<func>
+	<name>help</name>
+	<summary>Search data on the Okapi XML Document and show this help window, if something is found.</summary>
+	<parameters>
+		<item>
+			<field>operation</field>
+			<description>Name of the function to be searched on the Okapi Help System.</description>
+		</item>
+	</parameters>
+</func>
+<func>
+	<name>list</name>
+	<summary>List all current created tables, and its dimensions.</summary>
+</func>
+<func>
+	<name>magplot</name>
+	<summary>Plot the given table with the given type and parameters.</summary>
+	<parameters>
+		<item>
+			<field>table</field>
+			<description>Specify which table will be plotted.</description>
+		</item>
+		<item>
+			<field>type</field>
+			<description>Specify the scheme of the plotting. May be "dot", "line", "box", "pie" and "bar".</description>
+		</item>
+		<item>
+			<field>color</field>
+			<description>Color scheme of the plotting.</description>
+		</item>
+		<item>
+			<field>xlim</field>
+			<description>Manually sets up the limits of the x-axis. Should be on format (x,y), with no spaces inside.</description>
+		</item>
+		<item>
+			<field>ylim</field>
+			<description>Manually sets up the limits of the y-axis. Should be on format (x,y), with no spaces inside.</description>
+		</item>
+		<item>
+			<field>xlab</field>
+			<description>Set up the label of the x-axis.</description>
+		</item>
+		<item>
+			<field>ylab</field>
+			<description>Set up the label of the y-axis.</description>
+		</item>
+	</parameters>
+</func>
+<func>
+	<name>matrix</name>
+	<summary>Make a classic matrix operation with two given tables, and show its result.</summary>
+	<parameters>
+		<item>
+			<field>operation</field>
+			<description>The desired operation. May be "add", "sub" or "mult".</description>
+		</item>
+		<item>
+			<field>a</field>
+			<description>The first operand table.</description>
+		</item>
+		<item>
+			<field>b</field>
+			<description>The second operand table.</description>
+		</item>
+		<item>
+			<field>r</field>
+			<description>The resultant operand table.</description>
+		</item>
+	</parameters>
+</func>
+<func>
+	<name>table</name>
+	<summary>Make a table management operation.</summary>
+	<parameters>
+		<item>
+			<field>operation</field>
+			<description>Specify the operation to execute. Only "create" on this version.</description>
+		</item>
+		<item>
+			<field>name</field>
+			<description>Specify the name of the table, which one the operation will be executed on.</description>
+		</item>
+		<item>
+			<field>rownum</field>
+			<description>Number of rows on this table.</description>
+		</item>
+		<item>
+			<field>colnum</field>
+			<description>Number of columns on this table.</description>
+		</item>
+		<item>
+			<field>file</field>
+			<description>Source file, where the values will be searched on to fill the table.</description>
+		</item>
+	</parameters>
+</func>
