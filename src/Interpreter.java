@@ -455,12 +455,6 @@ public abstract class Interpreter {
 			if (sourceTable != null) {
 				// User gave a valid table, proceed.
 
-				// Adjust plotting limits automatically to the given table.
-				GeneralPlot.adjustParametersToTable(sourceTable);
-
-				// User may have a chance to impose it's own plotting limits.
-				Interpreter.InterpreterAuxiliaryMethods.setPlottingManualLimits();
-
 				// Obligatory parameters fully satisfied, try to call correct plot
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
@@ -477,34 +471,45 @@ public abstract class Interpreter {
 							System.out.println("W: invalid given color.");
 						} finally {
 							// Select plotting type
-							switch(Interpreter.PARAM_KEEPER.type) {
-								case "box": 
-									GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
-									PlotBox.setupPlotBox(dataTable, userColor);
-									GeneralPlot myPlotBox = new PlotBox();
-									break;
-								case "pie": 
-									GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
-									PlotPie.setupPlotPie(dataTable, userColor);
-									GeneralPlot myPlotPie = new PlotPie();
-									break;
-								case "bar": 
-									GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
-									PlotBar.setupPlotBar(dataTable, userColor);
-									GeneralPlot myPlotBar = new PlotBar();
-									break;
-								case "dot": 
-									PlotDot.setupPlotDot(dataTable, userColor);
-									GeneralPlot myPlotDot = new PlotDot();
-									break;
-								case "line": 
-									PlotLine.setupPlotLine(dataTable, userColor);
-									GeneralPlot myPlotLine = new PlotLine();
-									break;
-								default: 
-									System.out.println("E: invalid plotting type."); 
-									Thread.currentThread().interrupt();
-									break;
+							try {
+								switch(Interpreter.PARAM_KEEPER.type) {
+									case "box": 
+										GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
+										Interpreter.InterpreterAuxiliaryMethods.setPlottingManualLimits();
+										PlotBox.setupPlotBox(dataTable, userColor);
+										GeneralPlot myPlotBox = new PlotBox();
+										break;
+									case "pie": 
+										GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
+										PlotPie.setupPlotPie(dataTable, userColor);
+										GeneralPlot myPlotPie = new PlotPie();
+										break;
+									case "bar": 
+										GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
+										Interpreter.InterpreterAuxiliaryMethods.setPlottingManualLimits();
+										PlotBar.setupPlotBar(dataTable, userColor);
+										GeneralPlot myPlotBar = new PlotBar();
+										break;
+									case "dot": 
+										GeneralPlot.adjustParametersToTable(sourceTable);
+										Interpreter.InterpreterAuxiliaryMethods.setPlottingManualLimits();
+										PlotDot.setupPlotDot(dataTable, userColor);
+										GeneralPlot myPlotDot = new PlotDot();
+										break;
+									case "line": 
+										GeneralPlot.adjustParametersToTable(sourceTable);
+										Interpreter.InterpreterAuxiliaryMethods.setPlottingManualLimits();
+										PlotLine.setupPlotLine(dataTable, userColor);
+										GeneralPlot myPlotLine = new PlotLine();
+										break;
+									default: 
+										System.out.println("E: invalid plotting type."); 
+										Thread.currentThread().interrupt();
+										break;
+								}
+							} catch (Exception e) {
+								// Most probably its a table with illegal dimensions to the selected plot type.
+								System.out.println(e.getMessage());
 							}
 						}
 					}
