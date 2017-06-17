@@ -3,7 +3,7 @@ package plotsOkapiPack;
 // IMPORT SECTION
 import generalOkapiPack.OkapiTable;
 // 1. Swing 
-import javax.swing.UIManager;
+//import javax.swing.UIManager;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -32,9 +32,6 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.io.File;
-
-// To be deleted.
-// import javax.swing.SwingUtilities;
 // -----------------------------------------
 
 /**
@@ -264,7 +261,7 @@ public abstract class GeneralPlot {
 			// First, get axes subinterval sizes
 			Double ySubintervalSize = (GeneralPlot.plot_ylim_max - GeneralPlot.plot_ylim_min) / GeneralPlot.plot_yinterval_num;
 			
-			// 
+			// Draw y-axis intervals
 			for (Double i = (GeneralPlot.plot_ylim_min + ySubintervalSize); i < GeneralPlot.plot_ylim_max; i += ySubintervalSize) {
 				// Calculate the correspondent y position on the Jframe of the y value of the interval
 				Double yPlace = MakeAxis.Y_AXIS_Y1 + ((MakeAxis.Y_AXIS_Y2 - MakeAxis.Y_AXIS_Y1) * 

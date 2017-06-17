@@ -164,7 +164,7 @@ public class PlotBox extends GeneralPlot {
 		// Set user given color (white by default)
 		g.setColor(userColor);
 
-		// 
+		// Print the IQR rectangle
 		g.fillRect(
 			fstQuartileXPosition, 
 			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
@@ -173,7 +173,7 @@ public class PlotBox extends GeneralPlot {
 
 		g.setColor(Color.BLACK);
 
-		// 
+		// Draw the outline of IQR rectangle
 		g.drawRect(
 			fstQuartileXPosition, 
 			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
@@ -182,29 +182,31 @@ public class PlotBox extends GeneralPlot {
 
 		// ---------------------------------------------------
 		// LINE SECTION
-		// 
 
-		//		
+		// Horizontal line between global minimum and first quartile
 		g.drawLine(minValueXPosition, 
 			PlotBox.BOX_OFFSET, 
 			fstQuartileXPosition, 
 			PlotBox.BOX_OFFSET);
-		// 
+		// Horizontal line between global maximum and third quartile
 		g.drawLine(trdQuartileXPosition, 
 			PlotBox.BOX_OFFSET, 
 			maxValueXPosition, 
 			PlotBox.BOX_OFFSET);
 
+		// Vertical line of global minimum
 		g.drawLine(minValueXPosition, 
 			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
 			minValueXPosition, 
 			PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
-		// 
+
+		// Vertical line of median (second quartile)
 		g.drawLine(sndQuartileXPosition, 
 			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
 			sndQuartileXPosition, 
 			PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
-		// 
+
+		// Vertical line of third quartile
 		g.drawLine(maxValueXPosition, 
 			PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
 			maxValueXPosition, 
@@ -212,10 +214,11 @@ public class PlotBox extends GeneralPlot {
 
 		// ---------------------------------------------------
 		// TEXT SECTION
-		// Need to be improved.
+		// Text correction, to avoid superposition
 		Integer q2CharacterAdjust = (sndQuartileXPosition - fstQuartileXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
 		Integer q3CharacterAdjust = (trdQuartileXPosition - sndQuartileXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
 
+		// Draw basic values
 		drawValue(g, minValue, minValueXPosition, 0);
 		drawValue(g, fstQuartile, fstQuartileXPosition, 0);
 		drawValue(g, sndQuartile, sndQuartileXPosition, - q2CharacterAdjust);
@@ -223,6 +226,7 @@ public class PlotBox extends GeneralPlot {
 			(q2CharacterAdjust > 0 && q3CharacterAdjust > 0 ? q2CharacterAdjust : 0));
 		drawValue(g, maxValue, maxValueXPosition, 0);
 
+		// Draw basic labels
 		g.drawString("MIN", minValueXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
 		g.drawString("Q1", fstQuartileXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
 		g.drawString("Q2", sndQuartileXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET + q2CharacterAdjust);
@@ -230,7 +234,8 @@ public class PlotBox extends GeneralPlot {
 			(q2CharacterAdjust > 0 && q3CharacterAdjust > 0 ? q2CharacterAdjust : 0));
 		g.drawString("MAX", maxValueXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET );
 
-		// Outliers
+		// Check Outliers
+		// Min outliers
 		if (minValue < minOutlier) {
 			Integer globalMinCharAdjust = (minOutlierXPosition - minValueXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
 			g.setColor(Color.BLACK);
@@ -244,6 +249,7 @@ public class PlotBox extends GeneralPlot {
 				minOutlierXPosition, 
 				PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
 		}
+		// Max outliers
 		if (maxValue > maxOutlier) {
 			Integer globalMaxCharAdjust = (maxValueXPosition - maxOutlierXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
 			g.setColor(Color.BLACK);

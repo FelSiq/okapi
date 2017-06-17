@@ -6,7 +6,7 @@ import java.util.List;
 // ------------------------------------------
 
 /**
-* 
+* Basic data structure, used to keep values for plotting operations.
 */
 public class OkapiTable<T> {
 	// ------------------------------------------
@@ -14,17 +14,32 @@ public class OkapiTable<T> {
 	private List<List<T>> userTable;
 	private List<String> rowName, colName;
 	// ------------------------------------------
+	// CONSTRUCTOR SECTION
+
+	public OkapiTable(List<List<T>> newUserTable) {
+		this.userTable = newUserTable;
+		this.rowName = new ArrayList<String>();
+		this.colName = new ArrayList<String>();
+	}
+
+	public OkapiTable(List<List<T>> newUserTable, List<String> newRowNames, List<String> newColNames) {
+		this.userTable = newUserTable;
+		this.rowName = newRowNames;
+		this.colName = newColNames;
+	}
+
+	// ------------------------------------------
 	// METHOD SECTION 
 
 	/**
-	*
+	* Get the table of data values. 
 	*/
 	public List<List<T>> getUserTable() {
 		return this.userTable;
 	}
 
 	/**
-	* 
+	* Get the element on the x row and y column of the content table.
 	*/
 	public T getElement(int x, int y) {
 		try {
@@ -36,25 +51,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
-	*/
-	public OkapiTable(List<List<T>> newUserTable) {
-		this.userTable = newUserTable;
-		this.rowName = new ArrayList<String>();
-		this.colName = new ArrayList<String>();
-	}
-
-	/**
-	* 
-	*/
-	public OkapiTable(List<List<T>> newUserTable, List<String> newRowNames, List<String> newColNames) {
-		this.userTable = newUserTable;
-		this.rowName = newRowNames;
-		this.colName = newColNames;
-	}
-
-	/**
-	* 
+	* Get the name of column with given index 
 	*/ 
 	public String getColName(int index) {
 		try {
@@ -67,7 +64,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Get the name of row with given index 
 	*/ 
 	public String getRowName(int index) {
 		try {
@@ -80,7 +77,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Get number of columns of this table.
 	*/
 	public int getColNum() {
 		try {
@@ -92,7 +89,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Get number of rows of this table.
 	*/
 	public int getRowNum() {
 		try {
@@ -104,7 +101,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Add a new column name to the last column of the table.
 	*/ 
 	public void addColName(String newColName) {
 		try {
@@ -115,7 +112,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Add a new row name to the last row of the table.
 	*/ 
 	public void addRowName(String newRowName) {
 		try {
@@ -126,7 +123,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Remove name of the column with given index. 
 	*/ 
 	public void remColName(int index) {
 		try {
@@ -137,7 +134,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Remove name of the row with given index. 
 	*/ 
 	public void remRowName(int index) {
 		try {
@@ -148,7 +145,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Set a new value to the name of the column with given index.
 	*/ 
 	public void setColName(int index, String newColName) {
 		try {
@@ -159,7 +156,7 @@ public class OkapiTable<T> {
 	}
 
 	/**
-	* 
+	* Set a new value to the name of the row with given index.
 	*/ 
 	public void setRowName(int index, String newRowName) {
 		try {

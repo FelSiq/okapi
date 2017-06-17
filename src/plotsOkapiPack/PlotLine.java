@@ -18,7 +18,7 @@ public class PlotLine extends GeneralPlot {
 	// -------------------------------------------------
 	// INNER CLASS SECTION
 	/**
-	* 
+	* A pair of (x, y) values.
 	*/
 	private static class Tuple implements Comparable<Tuple> {
 		// 
@@ -86,21 +86,10 @@ public class PlotLine extends GeneralPlot {
 	}
 
 	/**
-	* Print stuff specific to this plot style.
+	* Create a copy of the user given table, converted to a sorted tuple list
 	*/
-	private static void plot(OkapiTable<Double> dataTable, Color userColor) {
-		// Get the plotting space dimensions
-		Integer bgDim = GeneralPlot.getBackgroundDim();
-
-		// Create the basis image for this plot
-		PlotLine.plotImage = new BufferedImage(
-			bgDim, bgDim, BufferedImage.TYPE_4BYTE_ABGR);
-
-		// Creates the basis drawer of this plot
-		Graphics2D g = (Graphics2D) plotImage.getGraphics();
-
-		// Set up user interface into a Tuple arraylist and sort it.
-		final List<Tuple> dataTableClone = new ArrayList<Tuple>();
+	private static List<Tuple> createCloneTable(OkapiTable<Double> dataTable) {
+		List<Tuple> dataTableClone = new ArrayList<Tuple>();
 
 		// Verify if this is a horizontal or vertical vector, and clone it.
 		if (dataTable.getRowNum() == 2) {
@@ -121,10 +110,13 @@ public class PlotLine extends GeneralPlot {
 		// Now sort the tuple array.
 		Collections.sort(dataTableClone);
 
-		// 
-		g.setColor(userColor);
+		return dataTableClone;
+	}
 
-		// 
+	/**
+	* Draw plot lines.
+	*/
+	private static void drawLines(Graphics2D g, List<Tuple> dataTableClone) {
 		Tuple currentTuple, nextTuple = dataTableClone.get(0);
 		for (int i = 0; i < dataTableClone.size() - 1; i++) {
 			currentTuple = nextTuple;
@@ -135,5 +127,29 @@ public class PlotLine extends GeneralPlot {
 				GeneralPlot.getXPosition(nextTuple.getX()).intValue(),
 				GeneralPlot.getYPosition(nextTuple.getY()).intValue());
 		}
+	}
+
+	/**
+	* Print stuff specific to this plot style.
+	*/
+	private static void plot(OkapiTable<Double> dataTable, Color userColor) {
+		// Get the plotting space dimensions
+		Integer bgDim = GeneralPlot.getBackgroundDim();
+
+		// Create the basis image for this plot
+		PlotLine.plotImage = new BufferedImage(
+			bgDim, bgDim, BufferedImage.TYPE_4BYTE_ABGR);
+
+		// Creates the basis drawer of this plot
+		Graphics2D g = (Graphics2D) plotImage.getGraphics();
+
+		// Set up user interface into a Tuple arraylist and sort it.
+		final List<Tuple> dataTableClone = createCloneTable(dataTable);
+
+		// Set user desired color
+		g.setColor(userColor);
+
+		// Plot lines
+		drawLines(g, dataTableClone);
 	}
 }

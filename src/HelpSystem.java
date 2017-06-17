@@ -10,7 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 
-// 3.
+// 3. AWT
 import java.awt.event.ActionListener;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -94,6 +94,9 @@ public class HelpSystem {
 		myFrame.setLocation(dim.width/2-myFrame.getSize().width/2, dim.height/2-myFrame.getSize().height/2);
 	}
 
+	/**
+	* Translate the given raw XML parameter string to it's "printable" form.
+	*/
 	private String formatParameters(String parameterXMLString) {
 		String formatedParameters = "";
 		Matcher m = Pattern.compile(REGEX_PARAMETER_PARSING).matcher(parameterXMLString);

@@ -476,7 +476,7 @@ public abstract class Interpreter {
 							// Error message (user typed a invalid color)
 							System.out.println("W: invalid given color.");
 						} finally {
-							// Placeholder solution.
+							// Select plotting type
 							switch(Interpreter.PARAM_KEEPER.type) {
 								case "box": 
 									GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
@@ -533,6 +533,7 @@ public abstract class Interpreter {
 	*/
 	private static Boolean table() {
 		try {
+			// -----------------------------------------------------------------
 			// Check if this method paremeter dependencies was satisfied.
 			String notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_DEPENDENCIES);
 			if (notSatisfiedDependency != null) {
@@ -540,7 +541,7 @@ public abstract class Interpreter {
 					+ notSatisfiedDependency);
 				return false;
 			}
-
+			// -----------------------------------------------------------------
 			// "TABLE" command dependencies was satisfied, at this point, now work with the operation
 			// Search the correct method to invoke
 			Method correctMethod = null;
@@ -553,6 +554,7 @@ public abstract class Interpreter {
 					break;
 				}
 			}
+			// Check the "correct method" was found.
 			if (correctMethod == null) {
 				System.out.println(
 					"E: Invalid table operation \"" + 
@@ -560,20 +562,24 @@ public abstract class Interpreter {
 					+ "\".");
 				return false;
 			}
-
+			// -----------------------------------------------------------------
 			// Check if given source file was given
 			File sourceFile = null;
 			if (Interpreter.PARAM_KEEPER.file != null)
 				sourceFile = new File(Interpreter.PARAM_KEEPER.file);
-
+			// -----------------------------------------------------------------
 			// If operation is "create", then this is a special case.
 			if (Interpreter.InterpreterAuxiliaryMethods.toCanonical(correctMethod.getName()).equals("create")) {
+				// It is a "create" operation.
+				// -----------------------------------------------------------------
+				// Verify possible new subdependencies
 				String notSatisfiedSubdependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_CREATE_SUBDEPENDENCIES);
 				if (notSatisfiedSubdependency != null) {
 					System.out.println("Warning: function parameters not fully satisfied, missing:"	
 						+ notSatisfiedSubdependency);
 					return false;
 				}
+				// -----------------------------------------------------------------
 
 				// 2. Creates the new table with specified user parameters
 				OkapiTable<Double> newTable = null;
@@ -592,6 +598,7 @@ public abstract class Interpreter {
 						Integer.parseInt(Interpreter.PARAM_KEEPER.colnum));
 				}
 
+				// Check if new table was successfully created.
 				if (newTable != null) {
 					// 3. Need to add the new table to the user table collection, with the specified name.
 					Interpreter.CREATED_TABLES.put(Interpreter.PARAM_KEEPER.name, newTable);
@@ -600,6 +607,10 @@ public abstract class Interpreter {
 					System.out.println("E: can't create table.");
 				}
 			} else {
+				// At this point, user command does not call "create" operation.
+				// Then it's not a special case to be handled.
+				// -----------------------------------------------------------------
+				// Verify possible new subdependencies.
 				String correctMethodName = Interpreter.InterpreterAuxiliaryMethods.toCanonical(correctMethod.getName());
 				if (correctMethodName.equals("remcol") || correctMethodName.equals("remrow")) {
 						 notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.TABLE_OP_INDEX_SUBDEPENDENCIES);
@@ -617,9 +628,7 @@ public abstract class Interpreter {
 							return false;
 						}
 				}
-				// At this point, user command does not call "create" operation.
-				// Then it's not a special case to be handled.
-				
+				// -----------------------------------------------------------------
 				// Get the user specified table
 				OkapiTable<Double> selectedTable = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.name);
 				
@@ -662,6 +671,7 @@ public abstract class Interpreter {
 	*/
 	private static Boolean matrix() {
 		try {
+			// -----------------------------------------------------------------
 			// Check if this method paremeter dependencies was satisfied.
 			String notSatisfiedDependency = Interpreter.InterpreterAuxiliaryMethods.checkDependencies(Interpreter.MATRIX_OP_DEPENDENCIES);
 			if (notSatisfiedDependency != null) {
@@ -669,9 +679,8 @@ public abstract class Interpreter {
 					notSatisfiedDependency);
 				return false;
 			}
-
+			// -----------------------------------------------------------------
 			// Conditions meet. 
-
 			// Search the correct method to invoke
 			Method correctMethod = null;
 			for (Method k : TableManager.class.getDeclaredMethods()) {
@@ -690,12 +699,13 @@ public abstract class Interpreter {
 					" \".");
 				return false;
 			}
-
+			// -----------------------------------------------------------------
 			// Get the A operand
 			OkapiTable<Double> matrixOperandA = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.a);
 
 			// Get the B operand
 			OkapiTable<Double> matrixOperandB = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.b);
+			// -----------------------------------------------------------------
 
 			// Check if specified table, to be worked on, exists				
 			if (matrixOperandA != null && matrixOperandB != null) {
