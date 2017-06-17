@@ -479,14 +479,17 @@ public abstract class Interpreter {
 							// Placeholder solution.
 							switch(Interpreter.PARAM_KEEPER.type) {
 								case "box": 
+									GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
 									PlotBox.setupPlotBox(dataTable, userColor);
 									GeneralPlot myPlotBox = new PlotBox();
 									break;
 								case "pie": 
+									GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
 									PlotPie.setupPlotPie(dataTable, userColor);
 									GeneralPlot myPlotPie = new PlotPie();
 									break;
 								case "bar": 
+									GeneralPlot.adjustParametersToTableUnidimensional(dataTable);
 									PlotBar.setupPlotBar(dataTable, userColor);
 									GeneralPlot myPlotBar = new PlotBar();
 									break;

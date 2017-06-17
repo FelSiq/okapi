@@ -55,6 +55,40 @@
 	</parameters>
 </func>
 <func>
+	<name>harry</name>
+	<summary>Harry Plotter is a young wizard from the School of the Datawizardry and Statisticraft. His best friends are Hashione Granger and ROM Weasley.</summary>
+	<parameters>
+		<item>
+			<field>Polyjuice Potion</field>
+			<description>Turn that operation in another one.</description>
+		</item>
+		<item>
+			<field>Dumbledore</field>
+			<description>Turn that field on when everything goes wrong.</description>
+		</item>
+		<item>
+			<field>Every Flavour Beans</field>
+			<description>Are you feelin' lucky tonight?.</description>
+		</item>
+		<item>
+			<field>Hedwig</field>
+			<description>Hooo. Hooo.</description>
+		</item>
+		<item>
+			<field>Dobby</field>
+			<description>Watch out your socks.</description>
+		</item>
+		<item>
+			<field>The-Field-That-Must-Not-Be-Named</field>
+			<description>Stay away from him.</description>
+		</item>
+		<item>
+			<field>Avada Kedavra</field>
+			<description>Should never be used under all circustances.</description>
+		</item>
+	</parameters>
+</func>
+<func>
 	<name>matrix</name>
 	<summary>Make a classic matrix operation with two given tables, and show its result.</summary>
 	<parameters>

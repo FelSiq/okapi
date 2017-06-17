@@ -28,7 +28,7 @@ public class OkapiTable<T> {
 	*/
 	public T getElement(int x, int y) {
 		try {
-			return this.userTable.get(y).get(x);
+			return this.userTable.get(x).get(y);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
 			System.out.println("E: can't get (" + x + ", " + y + ") element of this table!");
 		}

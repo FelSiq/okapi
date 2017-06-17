@@ -758,7 +758,8 @@ public abstract class GeneralPlot {
 	* Automatically adjust plot visual parameters to the given table.
 	* @Throws NullPointerException, if given table does not have any valid element.
 	*/
-	public static void adjustParametersToTable(OkapiTable<Double> userTable) throws NullPointerException, IllegalArgumentException {
+	public static void adjustParametersToTable(OkapiTable<Double> userTable) 
+	throws NullPointerException, IllegalArgumentException {
 		List<List<Double>> sourceTable = userTable.getUserTable();
 		// Verify if given table is a valid plotting table
 		if (sourceTable == null || sourceTable.size() == 0 || 
@@ -837,6 +838,46 @@ public abstract class GeneralPlot {
 			// On the plot, they must not be displayed.
 			GeneralPlot.setYLimits(0.0, 0.0);
 		}
+	}
+
+	/**
+	* Automatically adjust plot visual parameters to the given table, considering all elements of
+	* the table (regardless of its row and column) always into the x-dimension.
+	* @Throws No exceptions.
+	*/
+	public static void adjustParametersToTableUnidimensional(OkapiTable<Double> userTable) {
+		// Verify if given table is a valid plotting table
+		if (userTable == null || userTable.getColNum() == 0 || userTable.getRowNum() == 0) {
+			System.out.println("E: invalid table to adjust plot dimensions.");
+			return;
+		}
+
+		// Auxiliary variables, to set x-axis and y-axis limits adequately.
+		Double xMaxValue = Double.MIN_VALUE, xMinValue = Double.MAX_VALUE;
+		Double dummy = 0.0;
+
+		// Get the min and max of the table.
+		try {
+			for (int i = 0; i < userTable.getRowNum(); i++) {
+				for (int j = 0; j < userTable.getColNum(); j++) {
+					dummy = userTable.getElement(i, j);
+					xMaxValue = (xMaxValue < dummy ? dummy : xMaxValue);
+					xMinValue = (xMinValue > dummy ? dummy : xMinValue);
+				}
+			}
+		} catch (NullPointerException e) {
+			System.out.println(e.getMessage());
+		}
+
+		// Give a 0.1 ratio margin (to not overfit the data) to both min and max values
+		Double xIntervalAdjust = ((xMaxValue - xMinValue) * 1.0/10.0);
+
+		// Get min-max values to the given table
+		// Detect if this is a 2-1xN table or a 2-1xM table
+		GeneralPlot.setXLimits(xMinValue - xIntervalAdjust, xMaxValue + xIntervalAdjust);
+		
+		// Set y-axis limits to [0, 0] (unidimensional plot)
+		GeneralPlot.setYLimits(0.0, 0.0);
 	}
 
 	/**

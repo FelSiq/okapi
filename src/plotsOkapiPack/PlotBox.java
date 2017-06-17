@@ -67,7 +67,7 @@ public class PlotBox extends GeneralPlot {
 	}
 
 	/**
-	*
+	* Calculates the given quartile (1,2,3) of a list of values.
 	*/
 	private static Double getQuartile(int quartile, List<Double> values) {
 		Double aux = ((double) values.size()) * ((double) quartile / 4.0);
@@ -76,11 +76,39 @@ public class PlotBox extends GeneralPlot {
 	}
 
 	/**
-	*
+	* Draw a numeric value into the given position.
 	*/
 	private static void drawValue(Graphics2D g, Double value, Integer position, Integer yAdjust) {
-		String dummy = value.toString();
+		String dummy = ((Double) (Math.round(value * 10.0)/10.0)).toString();
 		g.drawString(dummy, position - CHARACTER_OFFSET * dummy.length()/2, PlotBox.TEXT_OFFSET + yAdjust);
+	}
+
+	/**
+	* Copy the elements of the user given OkapiTable into a Arraylist.
+	*/
+	private static List<Double> createCloneTable(OkapiTable<Double> userTable) {
+		// Instantiate the clone table
+		List<Double> dataTableClone = new ArrayList<Double>();
+
+		// Fill clone table
+		try {
+			for (int i = 0; i < userTable.getRowNum(); i++) {
+				for (int j = 0; j < userTable.getColNum(); j++) {
+					dataTableClone.add(userTable.getElement(i, j));
+				}
+			}		
+
+			// Sort clone table.
+			Collections.sort(dataTableClone, new Comparator<Double>() {
+				@Override
+				public int compare(Double a, Double b) {
+					return a.compareTo(b);
+				}
+			});
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return dataTableClone;
 	}
 
 	/**
@@ -89,32 +117,12 @@ public class PlotBox extends GeneralPlot {
 	private static void plot(OkapiTable<Double> userTable, Color userColor) {
 		// ---------------------------------------------------
 		// SETUP SECTION
-		final List<List<Double>> dataTable = userTable.getUserTable();
 		// Get the plotting space dimensions
 		final Integer bgDim = GeneralPlot.getBackgroundDim();
 		
 		// Clone user table (because boxplot need to sort it, and we don't want
 		// to move user's stuff around).
-		final List<Double> dataTableClone = new ArrayList<Double>();
-
-		// Verify if this is a horizontal or vertical vector
-		if (dataTable.size() == 1) {
-			for (Double cloneItem : dataTable.get(0))
-				dataTableClone.add(cloneItem);
-		} else {
-			GeneralPlot.verticalTableWarning();
-			for (List<Double> traveller : dataTable) {
-				dataTableClone.add(traveller.get(0));
-			}
-		}
-
-		// Sort clone table.
-		Collections.sort(dataTableClone, new Comparator<Double>() {
-			@Override
-			public int compare(Double a, Double b) {
-				return a.compareTo(b);
-			}
-		});
+		final List<Double> dataTableClone = createCloneTable(userTable);
 
 		// Create the basis image for this plot
 		PlotBox.plotImage = new BufferedImage(
@@ -224,24 +232,26 @@ public class PlotBox extends GeneralPlot {
 
 		// Outliers
 		if (minValue < minOutlier) {
+			Integer globalMinCharAdjust = (minOutlierXPosition - minValueXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
 			g.setColor(Color.BLACK);
 			g.drawString("(OUTLIER)", minValueXPosition - CHARACTER_OFFSET*4, PlotBox.VALUE_OFFSET - CHARACTER_OFFSET*2);
 			g.setColor(Color.RED);
-			g.drawString("MIN", minOutlierXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
-			g.drawString("(THRESHOLD)", minOutlierXPosition - CHARACTER_OFFSET*5, PlotBox.VALUE_OFFSET + CHARACTER_OFFSET*2);
-			drawValue(g, minOutlier, minOutlierXPosition, 0);
+			g.drawString("MIN", minOutlierXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET + globalMinCharAdjust);
+			g.drawString("(THRESHOLD)", minOutlierXPosition - CHARACTER_OFFSET*5, PlotBox.VALUE_OFFSET + CHARACTER_OFFSET*2 + globalMinCharAdjust);
+			drawValue(g, minOutlier, minOutlierXPosition, globalMinCharAdjust);
 			g.drawLine(minOutlierXPosition, 
 				PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
 				minOutlierXPosition, 
 				PlotBox.BOX_HEIGHT/2 + PlotBox.BOX_OFFSET);
 		}
 		if (maxValue > maxOutlier) {
+			Integer globalMaxCharAdjust = (maxValueXPosition - maxOutlierXPosition < CHARACTER_OFFSET*4) ? (CHARACTER_OFFSET * 2): 0;
 			g.setColor(Color.BLACK);
 			g.drawString("(OUTLIER)", maxValueXPosition - CHARACTER_OFFSET*4, PlotBox.VALUE_OFFSET - CHARACTER_OFFSET*2);
 			g.setColor(Color.RED);
-			g.drawString("MAX", maxOutlierXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET);
-			g.drawString("(THRESHOLD)", maxOutlierXPosition - CHARACTER_OFFSET*5, PlotBox.VALUE_OFFSET + CHARACTER_OFFSET*2);
-			drawValue(g, maxOutlier, maxOutlierXPosition, 0);
+			g.drawString("MAX", maxOutlierXPosition - CHARACTER_OFFSET, PlotBox.VALUE_OFFSET + globalMaxCharAdjust);
+			g.drawString("(THRESHOLD)", maxOutlierXPosition - CHARACTER_OFFSET*5, PlotBox.VALUE_OFFSET + CHARACTER_OFFSET*2 + globalMaxCharAdjust);
+			drawValue(g, maxOutlier, maxOutlierXPosition, globalMaxCharAdjust);
 			g.drawLine(maxOutlierXPosition, 
 				PlotBox.BOX_OFFSET - PlotBox.BOX_HEIGHT/2, 
 				maxOutlierXPosition, 
