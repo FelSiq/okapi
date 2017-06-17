@@ -95,15 +95,15 @@ public class PlotLine extends GeneralPlot {
 		if (dataTable.getRowNum() == 2) {
 			for (int i = 0; i < dataTable.getColNum(); i++) {
 				dataTableClone.add(new PlotLine.Tuple(
-					dataTable.getElement(i, 0), 
-					dataTable.getElement(i, 1)));
+					dataTable.getElement(0, i), 
+					dataTable.getElement(1, i)));
 			}
 		} else {
 			GeneralPlot.verticalTableWarning();
 			for (int i = 0; i < dataTable.getRowNum(); i++) {
 				dataTableClone.add(new PlotLine.Tuple(
-					dataTable.getElement(0, i), 
-					dataTable.getElement(1, i)));
+					dataTable.getElement(i, 0), 
+					dataTable.getElement(i, 1)));
 			}
 		}
 
