@@ -1,6 +1,9 @@
 # okapi
 Adremaled.
 
+Documentação do projeto:
+https://www.overleaf.com/10028130cgxkrkxhbsjx#/36899228/
+
 ## Links mais úteis que a aula de POO:
 - Tutorial da Caelum sobre interface gráfica SWING:
 http://www.caelum.com.br/apostila-java-testes-xml-design-patterns/interfaces-graficas-com-swing/
@@ -15,7 +18,7 @@ http://docs.oracle.com/javase/tutorial/uiswing/
 - [x] Command Interpreter
 
 ## Part 1: Plots
-- [ ] Bars
+- [x] Bars
 - [ ] Pie
 - [x] Line
 - [x] Boxplot

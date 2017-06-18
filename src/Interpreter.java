@@ -51,7 +51,7 @@ public abstract class Interpreter {
 	private static final Field[] PARAM_FIELD_NAMES = InterpreterParameters.class.getDeclaredFields();
 	
 	// Permited characters inside a non-arithmetic command (both for parameters and commands)
-	private static final String PERMITED_CHARACTERS = "-+_\\.,;=\\w\\{\\}\\(\\)\\[\\]";
+	private static final String PERMITED_CHARACTERS = "-+_\\/.,;=\\w\\{\\}\\(\\)\\[\\]";
 
 	// Possible suported ways of parameter atributtion. Get flexible!
 	private static final String PARAM_ATTRIBUTION = "(?:=+|is|equals?)";

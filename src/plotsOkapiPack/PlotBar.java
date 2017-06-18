@@ -60,7 +60,7 @@ public class PlotBar extends GeneralPlot {
 	private static int[] createFreqVector(OkapiTable<Double> dataTable, Double xMaxValue, Double xMinValue) {
 		int[] freqVector = new int[GeneralPlot.getXInterval()];
 
-		final Double constantCoef = ((double) (GeneralPlot.getXInterval() - 1))/(xMaxValue - xMinValue);
+		final Double constantCoef = ((double) (GeneralPlot.getXInterval()))/(GeneralPlot.FLOAT_EQUIVALENCE + xMaxValue - xMinValue);
 		try {
 			for (int i = 0; i < dataTable.getRowNum(); i++) {
 				for (int j = 0; j < dataTable.getColNum(); j++) {
@@ -71,9 +71,9 @@ public class PlotBar extends GeneralPlot {
 			System.out.println(e.getMessage());
 		}
 
-		for (int i = 0; i < freqVector.length; i++)
-			System.out.print(freqVector[i] + " ");
-		System.out.println();
+		//for (int i = 0; i < freqVector.length; i++)
+		//	System.out.print(freqVector[i] + " ");
+		//System.out.println();
 
 		return freqVector;
 	}
