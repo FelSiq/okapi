@@ -449,7 +449,7 @@ public abstract class Interpreter {
 			Interpreter.InterpreterAuxiliaryMethods.setPlottingParameters();
 
 			// Get table for plotting
-			OkapiTable<Double> sourceTable = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
+			final OkapiTable<Double> sourceTable = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
 
 			// Check if given table exists
 			if (sourceTable != null) {

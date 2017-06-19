@@ -178,7 +178,7 @@ public class HelpSystem {
 	/**
 	* Instantiate a working JFrame "Close" button.
 	*/
-	private JButton createCloseButton(JFrame frame) {
+	private JButton createCloseButton(final JFrame frame) {
 		final JButton closeButton = new JButton("Close");
 		closeButton.setMnemonic(KeyEvent.VK_C);
 		closeButton.addActionListener(new ActionListener () {
@@ -226,7 +226,7 @@ public class HelpSystem {
 	public boolean search(String function) {
 		try {
 			// Compile the regex XML Pattern interpretation, based on the user given function.
-			Matcher m = Pattern.compile(strRegexForm(function) + HelpSystem.REGEX_XML_ITEM).matcher(readFileDoc());
+			final Matcher m = Pattern.compile(strRegexForm(function) + HelpSystem.REGEX_XML_ITEM).matcher(readFileDoc());
 			if (m.find()) {
 				// If something is found on the Okapi Help XML Document, then create a help window
 				// with the found data.

@@ -51,7 +51,7 @@ public abstract class MainInterface {
 	private static void initialWindow() {
 		try {
 			// Create logo main frame.
-			JFrame janela = new JFrame("Okapi");
+			final JFrame janela = new JFrame("Okapi");
 
 			// Load icon.
 			BufferedImage myPicture2 = ImageIO.read(new File(MainInterface.IMG_DEFAULT_PATH + "icone.png"));
