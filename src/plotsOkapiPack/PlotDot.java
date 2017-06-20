@@ -49,8 +49,8 @@ public class PlotDot extends GeneralPlot {
 	* Print dot using a bidimensional horizontal dataTable.
 	*/
 	private static void plotDotHorizontalBidimensional(OkapiTable<Double> dataTable, Graphics2D g, int i) {
-		int x = GeneralPlot.getXPosition(dataTable.getElement(i, 0)).intValue();
-		int y = GeneralPlot.getYPosition(dataTable.getElement(i, 1)).intValue();
+		int x = GeneralPlot.getXPosition(dataTable.getElement(0, i)).intValue();
+		int y = GeneralPlot.getYPosition(dataTable.getElement(1, i)).intValue();
 		g.drawOval(x - PlotDot.dotRadius/2, y - PlotDot.dotRadius/2, PlotDot.dotRadius, PlotDot.dotRadius);
 	}
 
@@ -58,7 +58,7 @@ public class PlotDot extends GeneralPlot {
 	* Print dot using a unidimensional horizontal dataTable.
 	*/
 	private static void plotDotHorizontalUnimensional(OkapiTable<Double> dataTable, Graphics2D g, int i) {
-		int x = GeneralPlot.getXPosition(dataTable.getElement(i, 0)).intValue();
+		int x = GeneralPlot.getXPosition(dataTable.getElement(0, i)).intValue();
 		int y = GeneralPlot.getBackgroundDim()/2;
 		g.drawOval(x - PlotDot.dotRadius/2, y, PlotDot.dotRadius, PlotDot.dotRadius);
 	}
@@ -67,8 +67,8 @@ public class PlotDot extends GeneralPlot {
 	* Print dot using a bidimensional vertical dataTable.
 	*/
 	private static void plotDotVerticalBidimensional(OkapiTable<Double> dataTable, Graphics2D g, int i) {
-		int x = GeneralPlot.getXPosition(dataTable.getElement(0, i)).intValue();
-		int y = GeneralPlot.getYPosition(dataTable.getElement(1, i)).intValue();
+		int x = GeneralPlot.getXPosition(dataTable.getElement(i, 0)).intValue();
+		int y = GeneralPlot.getYPosition(dataTable.getElement(i, 1)).intValue();
 		g.drawOval(x - PlotDot.dotRadius/2, y - PlotDot.dotRadius/2, PlotDot.dotRadius, PlotDot.dotRadius);
 	}
 
@@ -76,7 +76,7 @@ public class PlotDot extends GeneralPlot {
 	* Print dot using a unidimensional vertical dataTable.
 	*/
 	private static void plotDotVerticalUnimensional(OkapiTable<Double> dataTable, Graphics2D g, int i) {
-		int x = GeneralPlot.getXPosition(dataTable.getElement(0, i)).intValue();
+		int x = GeneralPlot.getXPosition(dataTable.getElement(i, 0)).intValue();
 		int y = GeneralPlot.getBackgroundDim()/2;
 		g.drawOval(x - PlotDot.dotRadius/2, y, PlotDot.dotRadius, PlotDot.dotRadius);
 	}

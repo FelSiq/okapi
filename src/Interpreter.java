@@ -461,7 +461,7 @@ public abstract class Interpreter {
 						// Get user asked table
 						OkapiTable<Double> dataTable = Interpreter.CREATED_TABLES.get(Interpreter.PARAM_KEEPER.table);
 						// Set plot color scheme default to white
-						Color userColor = Color.WHITE;
+						Color userColor = Color.RED;
 						try {
 							// Try to recover user asked color, if any
 							if (Interpreter.PARAM_KEEPER.color != null)

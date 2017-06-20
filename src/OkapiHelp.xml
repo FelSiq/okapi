@@ -52,6 +52,14 @@
 			<field>ylab</field>
 			<description>Set up the label of the y-axis.</description>
 		</item>
+		<item>
+			<field>xint</field>
+			<description>Specify how many intervals should be on x-axis.</description>
+		</item>
+		<item>
+			<field>yint</field>
+			<description>Specify how many intervals should be on y-axis.</description>
+		</item>
 	</parameters>
 </func>
 <func>

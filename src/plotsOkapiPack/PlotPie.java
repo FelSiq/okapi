@@ -98,15 +98,15 @@ public class PlotPie extends GeneralPlot {
 		int starter = 0;
 		Integer currentInterval = 0;
 		for(int i = 0; i < freqVector.length; i++) {
+			Random rand = new Random();
+			Color c = new Color(rand.nextInt(255),rand.nextInt(255),rand.nextInt(255));
+			g.setColor(c);
+
 			g.fillRect(5, 5 + i*26, 20, 20);
 			g.drawString( "[" + (currentInterval) + ", " + ((currentInterval) + subInterval) + ") - " + 
 				((Double) (Math.round((100.0 * (double) freqVector[i]/ (double) freqSum) * 10.0)/10.0)).toString() + "%", 30, 5 + 13 + i*26);
 
 			currentInterval += subInterval;
-
-			Random rand = new Random();
-			Color c = new Color(rand.nextInt(255),rand.nextInt(255),rand.nextInt(255));
-			g.setColor(c);
 
 			int thetaval = ((360 * freqVector[i])/freqSum);
 			g.fillArc(
