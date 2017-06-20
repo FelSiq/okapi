@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 
 // 3. AWT
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -22,8 +23,13 @@ import java.awt.Toolkit;
 import java.awt.Color;
 import java.awt.Font;
 // 4. IO
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import javax.imageio.ImageIO;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.FileReader;
+import java.io.File;
 
 // ----------------------------------------------
 
@@ -42,7 +48,7 @@ public class HelpSystem {
 	private static final String REGEX_PARAMETER_PARSING = "<field>\\s*([^<>]*)</field>\\s*<description>\\s*([^<>]+)\\s*</description>";
 
 	// Default path for the Okapi XML Help Document.
-	private static final String XML_DOC_PATH = "./OkapiHelp.xml";
+	private static final String XML_DOC_PATH = "/OkapiHelp.xml";
 
 	// Main title of the Okapi Help System Window.
 	private static final String HELP_FRAME_NAME = "Okapi Help System";
@@ -69,10 +75,11 @@ public class HelpSystem {
 	* Red the whole Okapi XML document, and return it's content.
 	*/
 	private String readFileDoc() {
-		FileReader docContentFile = null;
+		BufferedReader docContentFile = null;
 		String docContent = "";
 		try {
-			docContentFile = new FileReader(HelpSystem.XML_DOC_PATH);
+			InputStream contentFile = (HelpSystem.class.getResourceAsStream(HelpSystem.XML_DOC_PATH));
+			docContentFile = new BufferedReader(new InputStreamReader(contentFile));
 			int c;
 			
 			while ((c = docContentFile.read()) != -1) {
@@ -196,6 +203,14 @@ public class HelpSystem {
 	private void setUpHelpInterface(String function, String summary, String parameters) {
 		// Help main frame
 		final JFrame mainHelpFrame = new JFrame(HelpSystem.HELP_FRAME_NAME);
+
+		// Set OKAPI Icon
+		try {
+			final BufferedImage myPicture = ImageIO.read(MainInterface.class.getResourceAsStream(MainInterface.IMG_DEFAULT_PATH + "icone.png"));
+			mainHelpFrame.setIconImage(myPicture);
+		} catch (IOException e) {
+			System.out.println("E: can't load OKAPI icon.");
+		}
 
 		// Close Button
 		JButton closeButton = createCloseButton(mainHelpFrame);

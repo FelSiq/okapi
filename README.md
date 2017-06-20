@@ -26,5 +26,5 @@ http://docs.oracle.com/javase/tutorial/uiswing/
 
 ## Part 2: General
 - [x] Arithmetic
-- [ ] Matrix
+- [x] Matrix
 - [x] Tables

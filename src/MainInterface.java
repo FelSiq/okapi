@@ -30,7 +30,7 @@ public abstract class MainInterface {
 	// -----------------------------------------------
 	// CONSTANT SECTION
 	// Default used image path (icon and logo)
-	private static final String IMG_DEFAULT_PATH = "./images/"; 
+	public static final String IMG_DEFAULT_PATH = "/images/"; 
 
 	// How many seconds the logo screen should last (in seconds).
 	private static final int LOGO_FRAME_SECONDS = 3;
@@ -54,11 +54,12 @@ public abstract class MainInterface {
 			final JFrame janela = new JFrame("Okapi");
 
 			// Load icon.
-			BufferedImage myPicture2 = ImageIO.read(new File(MainInterface.IMG_DEFAULT_PATH + "icone.png"));
+			//BufferedImage myPicture2 = ImageIO.read(new File(MainInterface.IMG_DEFAULT_PATH + "icone.png"));
+			BufferedImage myPicture2 = ImageIO.read(MainInterface.class.getResourceAsStream(MainInterface.IMG_DEFAULT_PATH + "icone.png"));
 			janela.setIconImage(myPicture2);
 
 			// Load logo.
-			BufferedImage myPicture = ImageIO.read(new File(MainInterface.IMG_DEFAULT_PATH + "okapi.png"));
+			BufferedImage myPicture = ImageIO.read(MainInterface.class.getResourceAsStream(MainInterface.IMG_DEFAULT_PATH + "okapi.png"));
 			JLabel picLabel = new JLabel(new ImageIcon(myPicture));
 			janela.add(picLabel, BorderLayout.CENTER);
 		    
@@ -92,7 +93,7 @@ public abstract class MainInterface {
 		    });
 		    timer.start();
 
-		} catch (IOException | NullPointerException e) {
+		} catch (IOException | NullPointerException | IllegalArgumentException e) {
 			System.out.println(e.getMessage());
 		}
 	}
