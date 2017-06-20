@@ -50,6 +50,9 @@ public abstract class GeneralPlot {
 	// if |FloatP1 - FloatP2| < FLOAT_EQUIVALENCE, then they're the same number.
 	public static final Double FLOAT_EQUIVALENCE = 0.0001;
 
+	// Default used image path (icon and logo)
+	public static final String IMG_DEFAULT_PATH = "/images/"; 
+
 	// -------------------------------------------------
 	// VARIABLE SECTION
 	// Controls the display of the plot axis
@@ -297,14 +300,16 @@ public abstract class GeneralPlot {
 			// Axes are black by default
 			g.setColor(Color.BLACK);
 
-			// Draw a labeled x-axis base
-			drawXAxis(g);
-			// Draw a labeled y-axis base
-			drawYAxis(g);
-
-			// Draw axes limits
-			drawXIntervals(g);
-			drawYIntervals(g);
+			// Check if axes are enabled
+			if (GeneralPlot.plot_axis_visible) {
+				// Draw a labeled x-axis base
+				drawXAxis(g);
+				// Draw a labeled y-axis base
+				drawYAxis(g);
+				// Draw axes limits
+				drawXIntervals(g);
+				drawYIntervals(g);
+			}
 
 			// Print given image on the current plot, with full alpha background
 			g.drawImage(super.plotImage, 0, 0, new Color(0, 0, 0, 0), this);
@@ -435,14 +440,11 @@ public abstract class GeneralPlot {
 		JPanel newPanel = new JPanel();
 
 		// Add plot background with or without axis
-		// Beware with the ternary operator.
-		newPanel.add(GeneralPlot.plot_axis_visible 
-			? new GeneralPlot.MakeAxis(plotImage,
+		newPanel.add(new GeneralPlot.MakeAxis(plotImage,
 				GeneralPlot.plot_axis_xlabel, 
 				GeneralPlot.plot_axis_ylabel, 
 				GeneralPlot.plot_axis_xoffset, 
-				GeneralPlot.plot_axis_yoffset) 
-			: new GeneralPlot.BackgroundRectangle(plotImage));
+				GeneralPlot.plot_axis_yoffset));
 
 		// Return brand-new panel
 		return newPanel;
@@ -525,6 +527,13 @@ public abstract class GeneralPlot {
 
 		// Create frame
 		final JFrame myFrame = createFrame(GeneralPlot.PLOT_WINDOW_TITLE, mainPanel, buttonsPanel);
+
+		try {
+			final BufferedImage myPicture = ImageIO.read(GeneralPlot.class.getResourceAsStream(GeneralPlot.IMG_DEFAULT_PATH + "icone.png"));
+			myFrame.setIconImage(myPicture);
+		} catch (IOException e) {
+			System.out.println("E: can't load OKAPI icon.");
+		}
 
 		// Add funcionality on the Close button
 		bClose.addActionListener(new ActionListener () {

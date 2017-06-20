@@ -26,6 +26,8 @@ public class PlotPie extends GeneralPlot {
 
 	private static int Y_AXIS_OFFSET = GeneralPlot.getBackgroundDim()/2;
 
+	private static int PLOT_BORDER_SIZE = 60;
+
 	private static int starter;
 	// -------------------------------------------------
 	// CLASS CONSTRUCTOR
@@ -40,7 +42,7 @@ public class PlotPie extends GeneralPlot {
 	*/
 	public static void setupPlotPie(OkapiTable<Double> dataTable, Color userColor) {
 		// Set up stuff related to PlotPie, if needed.
-		GeneralPlot.setAxis(true);
+		GeneralPlot.setAxis(false);
 
 		// Set a good visual x-axis offset 
 		GeneralPlot.setXAxisOffset(PlotPie.X_AXIS_OFFSET);
@@ -82,7 +84,11 @@ public class PlotPie extends GeneralPlot {
 		final int halfRadius = bgDim/2;
 
 		g.setColor(Color.BLACK);
-		g.drawOval(0, 0, bgDim, bgDim);
+		g.drawOval(
+			PlotPie.PLOT_BORDER_SIZE, 
+			PlotPie.PLOT_BORDER_SIZE, 
+			bgDim - PlotPie.PLOT_BORDER_SIZE - 5, 
+			bgDim - PlotPie.PLOT_BORDER_SIZE - 5);
 
 		int freqSum = 0;
 		for (int i = 0; i < freqVector.length; i++) {
@@ -93,7 +99,9 @@ public class PlotPie extends GeneralPlot {
 		Integer currentInterval = 0;
 		for(int i = 0; i < freqVector.length; i++) {
 			g.fillRect(5, 5 + i*26, 20, 20);
-			g.drawString( "[" + currentInterval + ", " + (currentInterval + subInterval) + ")", 30, 5 + 13 + i*26);
+			g.drawString( "[" + (currentInterval) + ", " + ((currentInterval) + subInterval) + ") - " + 
+				((Double) (Math.round((100.0 * (double) freqVector[i]/ (double) freqSum) * 10.0)/10.0)).toString() + "%", 30, 5 + 13 + i*26);
+
 			currentInterval += subInterval;
 
 			Random rand = new Random();
@@ -101,7 +109,11 @@ public class PlotPie extends GeneralPlot {
 			g.setColor(c);
 
 			int thetaval = ((360 * freqVector[i])/freqSum);
-			g.fillArc(0, 0, bgDim, bgDim, starter, thetaval);
+			g.fillArc(
+				PlotPie.PLOT_BORDER_SIZE, 
+				PlotPie.PLOT_BORDER_SIZE, 
+				bgDim - PlotPie.PLOT_BORDER_SIZE - 5, 
+				bgDim - PlotPie.PLOT_BORDER_SIZE - 5, starter, thetaval);
 
 			starter += thetaval;
 		}
