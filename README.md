@@ -13,13 +13,14 @@ http://docs.oracle.com/javase/tutorial/uiswing/
 
 :)
 
+(DONE)
 ## Part 0:
 - [x] Main User Interface
 - [x] Command Interpreter
 
 ## Part 1: Plots
 - [x] Bars
-- [ ] Pie
+- [x] Pie
 - [x] Line
 - [x] Boxplot
 - [x] Dots
