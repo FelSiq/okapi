@@ -45,9 +45,20 @@ public class OkapiTable<T> {
 		try {
 			return this.userTable.get(x).get(y);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
-			System.out.println("E: can't get (" + x + ", " + y + ") element of this table!");
+			System.out.println("E: can't GET (" + x + ", " + y + ") element of this table!");
 		}
 		return null;
+	}
+
+	/**
+	* Get the element on the x row and y column of the content table.
+	*/
+	public void setElement(int x, int y, T value) {
+		try {
+			this.userTable.get(x).set(y, value);
+		} catch (NullPointerException | IndexOutOfBoundsException e) {
+			System.out.println("E: can't SET (" + x + ", " + y + ") element of this table!");
+		}
 	}
 
 	/**
@@ -55,7 +66,7 @@ public class OkapiTable<T> {
 	*/ 
 	public String getColName(int index) {
 		try {
-			if (this.getColNum() > index)
+			if (this.colName.size() > index)
 				return this.colName.get(index);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
 			//Do nothing, because can happens.
@@ -68,7 +79,7 @@ public class OkapiTable<T> {
 	*/ 
 	public String getRowName(int index) {
 		try {
-			if (this.getRowNum() > index)
+			if (this.rowName.size() > index)
 				return this.rowName.get(index);
 		} catch (NullPointerException | IndexOutOfBoundsException e) {
 			//Do nothing, because can happens.

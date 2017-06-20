@@ -33,6 +33,10 @@ public abstract class TableManager extends GeneralOkapi {
 			while (table.size() < rowNum) {
 				newTable.addRowName("Row" + newTable.getRowNum());
 				table.add(new ArrayList<Double>(colNum));
+				for (int i = 0; i < colNum; i++) {
+					newTable.addColName("Col" + newTable.getColNum());
+					table.get(table.size() - 1).add(0.0);
+				}
 			}
 
 			// Return OkapiTable
@@ -61,8 +65,7 @@ public abstract class TableManager extends GeneralOkapi {
 			// Fill up created table from given file
 			for (int i = 0; i < rowNum; i++) {
 				for (int j = 0; j < colNum; j++) {
-					newTable.addColName("Col" + newTable.getColNum());
-					table.get(i).add((myInput.hasNextDouble() || inputFile.equals(System.in)) ? myInput.nextDouble() : 0.0);
+					table.get(i).set(j, (myInput.hasNextDouble() ? myInput.nextDouble() : 0.0));
 				}
 			}
 

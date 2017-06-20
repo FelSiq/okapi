@@ -688,7 +688,7 @@ public abstract class Interpreter {
 			// Conditions meet. 
 			// Search the correct method to invoke
 			Method correctMethod = null;
-			for (Method k : TableManager.class.getDeclaredMethods()) {
+			for (Method k : Matrix.class.getDeclaredMethods()) {
 				// Search for the correct method to be invoked
 				if (Interpreter.InterpreterAuxiliaryMethods.toCanonical(k.getName()).equals(Interpreter.PARAM_KEEPER.operation)) {
 					// Found correct method.
