@@ -1,0 +1,12 @@
+table operation = create name = hellotable rownum = 2 colnum = 10 file = test.temp
+table operation is print name = hellotable
+magplot type is bar table is hellotable color = gray xint = 10
+magplot type = line table is hellotable
+magplot type = line table is hellotable color equals blue xlim is (-30,50) ylim is [-25,75].
+magplot table = hellotable type = box xlab = InterestingData
+magplot type is pie table is hellotable
+matrix operation is add a is hellotable b is hellotable
+matrix operation is sub a is hellotable b is hellotable
+matrix operation is mult a is hellotable b is hellotable
+help operation = magplot
+exit
